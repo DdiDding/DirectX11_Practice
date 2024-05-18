@@ -3,6 +3,7 @@
 #define _APPLICATIONCLASS_H_
 
 #include <windows.h>
+#include "D3DClass.h"
 
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = true;
@@ -24,5 +25,8 @@ private:
 	bool Render();
 
 private:
+
+	//  D3DClass의 포인터 추가, 이 튜토리얼에서 모든 멤버 변수는 m_접두사를 사용.
+	D3DClass* m_Direct3D;
 };
 #endif
