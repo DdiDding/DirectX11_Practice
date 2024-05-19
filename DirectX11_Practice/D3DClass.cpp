@@ -21,6 +21,7 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	// IDXGIAdapter : 그래픽 카드의 특정 기능과 정보를 관리하는 인터페이스
 	// 그래픽 카드의 정보가 나열 되고 해당 그래픽 카드와 관련된 작업을 수행 가능
 	IDXGIAdapter* adapter;
+	// IDXGIOutput : 그래픽 카드의 출력장치(모니터, ...)의 정보를 관리하는 인터페이스
 	IDXGIOutput* adapterOutput;
 	unsigned int numModes, i, numerator, denominator;
 	unsigned long long stringLength;
@@ -40,6 +41,10 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	// 수직 동기화 세팅
 	m_vsync_enabled = vsync;
 
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	// 주사율 세팅 값 알아내기
+	//////////////////////////////////////////////////////////////////////////////////////////////
+
 	// DirectX graphics Infrastructure(DXGI) factory를 생성
 	// DXGI는 일단 프로그램과 그래픽 기능 장치(모니터, 그래픽카드 ..) 사이에서 일해주는 기능이라고 생각하자.
 	result = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
@@ -49,43 +54,43 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 		return false;
 	}
 
-	// 방금 만든 DXGI factory를 사용해 IDXGIAdapter를 생성한다.
+	// 방금 만든 DXGI factory를 사용해 0번째 사용하는 그래픽카드의 IDXGIAdapter를 생성한다.
 	result = factory->EnumAdapters(0, &adapter);
 	if (FAILED(result))
 	{
 		return false;
 	}
 
-	// 모니터가 보통 그래픽 카드에 꽂혀있기 때문에 그래픽 카드 어댑터를 통해 연결된 모니터를 알아낸다.
+	// IDXGIAdapter를 이용해 그래픽 카드의 사용 가능한 0번째 출력장치(모니터)의 정보를 저장한다.
 	result = adapter->EnumOutputs(0, &adapterOutput);
 	if (FAILED(result))
 	{
 		return false;
 	}
 
-	// Get the number of modes that fit the DXGI_FORMAT_R8G8B8A8_UNORM display format for the adapter output (monitor).
+	// 색상 형식이 DXGI_FORMAT_R8G8B8A8_UNORM인 디스플레이 모드의 종류 개수를 numModes에 저장한다.
 	result = adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, NULL);
 	if (FAILED(result))
 	{
 		return false;
 	}
 
-	// Create a list to hold all the possible display modes for this monitor/video card combination.
+	// 방금 저장한 디스플레이 모드의 종류 개수 만큼 배열을 생성한다.
 	displayModeList = new DXGI_MODE_DESC[numModes];
 	if (!displayModeList)
 	{
 		return false;
 	}
 
-	// Now fill the display mode list structures.
+	// numModes의 수 만큼 디스플레이 모드 정보를 displayModeList으로 가져온다.
 	result = adapterOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, displayModeList);
 	if (FAILED(result))
 	{
 		return false;
 	}
 
-	// 해상도 목록을 살펴보고 모니터에 맞는 해상도를 찾는다.
-	// 일치하는 해상도를 찾으면 주사율의 분자 분모를 저장한다.
+	// 디스플레이 모드 목록에서 모니터의 크기에 맞는 디스플레이 모드를 찾는다.
+	// 일치하는 디스플레이 모드를 찾으면 주사율의 분자 분모를 저장한다.
 	for (i = 0; i < numModes; i++)
 	{
 		if (displayModeList[i].Width == (unsigned int)screenWidth)
@@ -98,17 +103,22 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 		}
 	}
 
-	// Get the adapter (video card) description.
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	// 그래픽 카드 이름과 vram 용량 알아내기
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	
+	// DXGI_ADAPTER_DESC adapterDesc;
+	// 그래픽 카드의 설명을 가져온다.
 	result = adapter->GetDesc(&adapterDesc);
 	if (FAILED(result))
 	{
 		return false;
 	}
 
-	// Store the dedicated video card memory in megabytes.
+	// dedicated video card memory(VRAM)를 메가바이트 단위로 저장합니다.
 	m_videoCardMemory = (int)(adapterDesc.DedicatedVideoMemory / 1024 / 1024);
 
-	// Convert the name of the video card to a character array and store it.
+	// 그래픽 카드의 이름을 Char형 배열로 변환하여 저장합니다.
 	error = wcstombs_s(&stringLength, m_videoCardDescription, 128, adapterDesc.Description, 128);
 	if (error != 0)
 	{
@@ -131,42 +141,47 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	factory->Release();
 	factory = 0;
 
-	// Initialize the swap chain description.
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	// 스왑 체인
+	//////////////////////////////////////////////////////////////////////////////////////////////
+
+	// 스왑체인의 세팅값(DXGI_SWAP_CHAIN_DESC)을 설정하기전 0으로 초기화 한다.
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
 
-	// Set to a single back buffer.
+	// 버퍼를 보통 2개, 혹은 3개로 설정하지만 일단 튜토리얼에서는 버퍼 개수를 1개, 싱글 버퍼링으로 동작시킨다.
 	swapChainDesc.BufferCount = 1;
 
-	// Set the width and height of the back buffer.
+	// 버퍼(도화지)의 크기 설정.
 	swapChainDesc.BufferDesc.Width = screenWidth;
 	swapChainDesc.BufferDesc.Height = screenHeight;
 
-	// Set regular 32-bit surface for the back buffer.
+	// 버퍼(도화지)의 픽셀 형식을 설정.
 	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-	// Set the refresh rate of the back buffer.
+	// 버퍼의 주사율을 설정, 수직 동기화 여부에 따라 분기가 갈린다.
 	if (m_vsync_enabled)
 	{
 		swapChainDesc.BufferDesc.RefreshRate.Numerator = numerator;
 		swapChainDesc.BufferDesc.RefreshRate.Denominator = denominator;
 	}
+	// 수직 동기화가 아니라면 주사율의 제한이 없어진다.
 	else
 	{
 		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
 		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 	}
 
-	// Set the usage of the back buffer.
+	// 버퍼의 용도를 설정하는건데 일단 튜토리얼에서는 렌더링할 목적으로 설정했다.
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 
-	// Set the handle for the window to render to.
+	// 버퍼의 핸들을 설정.
 	swapChainDesc.OutputWindow = hwnd;
 
-	// Turn multisampling off.
+	// 멀티 샘플링(안티 에일리어싱) 을 끈다.
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0;
 
-	// Set to full screen or windowed mode.
+	// 전체 화면의 설정 분기.
 	if (fullscreen)
 	{
 		swapChainDesc.Windowed = false;
@@ -176,63 +191,56 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 		swapChainDesc.Windowed = true;
 	}
 
-	// Set the scan line ordering and scaling to unspecified.
+	// 버퍼를 위에서부터 차례대로 그릴건지, 짝수 줄부터 그릴건지, ..등에 대한 세팅, 튜토리얼에서는 기본값 사용.
 	swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	// 스케일링에 대한 설명, 튜토리얼에서는 기본값 사용.
 	swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 
-	// Discard the back buffer contents after presenting.
+	// 버퍼의 교체 방식의 세팅 값인데 지금은 단일 버퍼라 의미 없음.
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
-	// Don't set the advanced flags.
+	// 플래그를 설정하지 않는다 = 일단 중요하지 않다.
 	swapChainDesc.Flags = 0;
-	After setting up the swap chain description we also need to setup one more variable called the feature level.This variable tells DirectX what version we plan to use.Here we set the feature level to 11.0 which is DirectX 11. You can set this to 10 or 9 to use a lower level version of DirectX if you plan on supporting multiple versions or running on lower end hardware.
 
-		// Set the feature level to DirectX 11.
-		featureLevel = D3D_FEATURE_LEVEL_11_0;
-	Now that the swap chain description and feature level have been filled out, we can create the swap chain, the Direct3D device, and the Direct3D device context.The Direct3D device and Direct3D device context are very important, they are the interface to all of the Direct3D functions.We will use the device and device context for almost everything from this point forward.
-
-		Those of you reading this who are familiar with the previous versions of DirectX will recognize the Direct3D device but will be unfamiliar with the new Direct3D device context.Basically, they took the functionality of the Direct3D device and split it up into two different devices so you need to use both now.
-
-		Note that if the user does not have a DirectX 11 video card this function call will fail to create the device and device context.Also, if you are testing DirectX 11 functionality yourself and don't have a DirectX 11 video card then you can replace D3D_DRIVER_TYPE_HARDWARE with D3D_DRIVER_TYPE_REFERENCE and DirectX will use your CPU to draw instead of the video card hardware. Note that this runs 1/1000 the speed but it is good for people who don't have DirectX 11 video cards yet on all their machines.
-
-		// Create the swap chain, Direct3D device, and Direct3D device context.
-		result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featureLevel, 1,
+	// 사용할 DirectX의 버전을 정의
+	featureLevel = D3D_FEATURE_LEVEL_11_0;
+	
+	// 여태 세팅한 DXGI_SWAP_CHAIN_DESC를 이용해 스왑체인, Direct3D device, Direct3D device context를 생성한다.
+	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featureLevel, 1,
 			D3D11_SDK_VERSION, &swapChainDesc, &m_swapChain, &m_device, NULL, &m_deviceContext);
 	if (FAILED(result))
 	{
 		return false;
 	}
-	Sometimes this call to create the device will fail if the primary video card is not compatible with DirectX 11. Some machines may have the primary card as a DirectX 10 video card and the secondary card as a DirectX 11 video card.Also, some hybrid graphics cards work that way with the primary being the low power Intel card and the secondary being the high power Nvidia card.To get around this you will need to not use the default device and instead enumerate all the video cards in the machine and have the user choose which one to use and then specify that card when creating the device.
 
-		Now that we have a swap chain, we need to get a pointer to the back buffer and then attach it to the swap chain.We'll use the CreateRenderTargetView function to attach the back buffer to our swap chain.
-
-		// Get the pointer to the back buffer.
-		result = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferPtr);
+	// 스왑체인의 버퍼 포인터를 가져온다.
+	result = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferPtr);
 	if (FAILED(result))
 	{
 		return false;
 	}
 
-	// Create the render target view with the back buffer pointer.
+	// 렌더 타겟 뷰(실제 버퍼)를 버퍼를 연결하면서 생성한다.
 	result = m_device->CreateRenderTargetView(backBufferPtr, NULL, &m_renderTargetView);
 	if (FAILED(result))
 	{
 		return false;
 	}
 
-	// Release pointer to the back buffer as we no longer need it.
+	// 이제 이용가치가 사라진 버퍼의 포인터를 메모리 해제한다.
 	backBufferPtr->Release();
-	backBufferPtr = 0;
-	We will also need to set up a depth buffer description.We'll use this to create a depth buffer so that our polygons can be rendered properly in 3D space. At the same time, we will attach a stencil buffer to our depth buffer. The stencil buffer can be used to achieve effects such as motion blur, volumetric shadows, and other things.
+	backBufferPtr = nullptr;
+	
+	// Initialize the description of the depth buffer.
+	ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
 
-		// Initialize the description of the depth buffer.
-		ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
-
+	// 버퍼는 결국 2D 텍스쳐일 뿐이기에 버퍼로 사용할 2D 텍스쳐부터 만들것이다.
 	// Set up the description of the depth buffer.
 	depthBufferDesc.Width = screenWidth;
 	depthBufferDesc.Height = screenHeight;
 	depthBufferDesc.MipLevels = 1;
 	depthBufferDesc.ArraySize = 1;
+	// 32bit중 24bit는 Depth buffer로, 8bit는 Stencil buffer로 사용한다는 뜻이다.
 	depthBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	depthBufferDesc.SampleDesc.Count = 1;
 	depthBufferDesc.SampleDesc.Quality = 0;
@@ -240,18 +248,16 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	depthBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	depthBufferDesc.CPUAccessFlags = 0;
 	depthBufferDesc.MiscFlags = 0;
-	Now we create the depth / stencil buffer using that description.You will notice we use the CreateTexture2D function to make the buffers, hence the buffer is just a 2D texture.The reason for this is that once your polygons are sorted and then rasterized, they just end up being colored pixels in this 2D buffer.Then this 2D buffer is drawn to the screen.
-
-		// Create the texture for the depth buffer using the filled out description.
-		result = m_device->CreateTexture2D(&depthBufferDesc, NULL, &m_depthStencilBuffer);
+	
+	// 하나의 2D Texture를 깊이, 스텐실 버퍼로 사용한다.
+	result = m_device->CreateTexture2D(&depthBufferDesc, NULL, &m_depthStencilBuffer);
 	if (FAILED(result))
 	{
 		return false;
 	}
-	Now we need to setup the depth stencil description.This allows us to control what type of depth test Direct3D will do for each pixel.
 
-		// Initialize the description of the stencil state.
-		ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+	// Initialize the description of the stencil state.
+	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
 
 	// Set up the description of the stencil state.
 	depthStencilDesc.DepthEnable = true;
@@ -262,53 +268,49 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	depthStencilDesc.StencilReadMask = 0xFF;
 	depthStencilDesc.StencilWriteMask = 0xFF;
 
-	// Stencil operations if pixel is front-facing.
+	// 픽셀이 전면을 향하고 있는 경우 스텐실 작업. 
 	depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
 	depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
 	depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 	depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
-	// Stencil operations if pixel is back-facing.
+	// 픽셀이 후면을 향하고 있는 경우 스텐실 작업. 
 	depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
 	depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
 	depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 	depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-	With the description filled out we can now create a depth stencil state.
+	
 
-		// Create the depth stencil state.
-		result = m_device->CreateDepthStencilState(&depthStencilDesc, &m_depthStencilState);
+	// depth stencil state 생성
+	result = m_device->CreateDepthStencilState(&depthStencilDesc, &m_depthStencilState);
 	if (FAILED(result))
 	{
 		return false;
 	}
-	With the created depth stencil state, we can now set it so that it takes effect.Notice we use the device context to set it.
 
-		// Set the depth stencil state.
-		m_deviceContext->OMSetDepthStencilState(m_depthStencilState, 1);
-	The next thing we need to create is the description of the view of the depth stencil buffer.We do this so that Direct3D knows to use the depth buffer as a depth stencil texture.After filling out the description we then call the function CreateDepthStencilView to create it.
+	// depth stencil state 등록
+	m_deviceContext->OMSetDepthStencilState(m_depthStencilState, 1);
 
-		// Initialize the depth stencil view.
-		ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
+	// depth stencil view 초기화
+	ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
 
-	// Set up the depth stencil view description.
+	// depth stencil view Desc 설정
 	depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	depthStencilViewDesc.Texture2D.MipSlice = 0;
 
-	// Create the depth stencil view.
+	// depth stencil view 생성
 	result = m_device->CreateDepthStencilView(m_depthStencilBuffer, &depthStencilViewDesc, &m_depthStencilView);
 	if (FAILED(result))
 	{
 		return false;
 	}
-	With that created we can now call OMSetRenderTargets.This will bind the render target view and the depth stencil buffer to the output render pipeline.This way the graphics that the pipeline renders will get drawn to our back buffer that we previously created.With the graphics written to the back buffer we can then swap it to the front and display our graphics on the user's screen.
 
-		// Bind the render target view and depth stencil buffer to the output render pipeline.
-		m_deviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
-	Now that the render targets are setup, we can continue on to some extra functions that will give us more control over our scenes for future tutorials.First thing is we'll create is a rasterizer state. This will give us control over how polygons are rendered. We can do things like make our scenes render in wireframe mode or have DirectX draw both the front and back faces of polygons. By default, DirectX already has a rasterizer state set up and working the exact same as the one below but you have no control to change it unless you set up one yourself.
+	// 렌더 타겟 뷰와 깊이 스텐실 버퍼를 출력 렌더 파이프라인에 바인딩합니다. 
+	m_deviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
 
-		// Setup the raster description which will determine how and what polygons will be drawn.
-		rasterDesc.AntialiasedLineEnable = false;
+	// Setup the raster description which will determine how and what polygons will be drawn.
+	rasterDesc.AntialiasedLineEnable = false;
 	rasterDesc.CullMode = D3D11_CULL_BACK;
 	rasterDesc.DepthBias = 0;
 	rasterDesc.DepthBiasClamp = 0.0f;
@@ -328,7 +330,6 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 
 	// Now set the rasterizer state.
 	m_deviceContext->RSSetState(m_rasterState);
-	The viewport also needs to be setup so that Direct3D can map clip space coordinates to the render target space.Set this to be the entire size of the window.
 
 		// Setup the viewport for rendering.
 		m_viewport.Width = (float)screenWidth;
