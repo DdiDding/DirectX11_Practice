@@ -6,7 +6,7 @@ class InputClass
 {
 public:
 	InputClass() = default;
-	InputClass(const InputClass&);
+	InputClass(const InputClass&) = default;
 	~InputClass() = default;
 
 	void Initialize();

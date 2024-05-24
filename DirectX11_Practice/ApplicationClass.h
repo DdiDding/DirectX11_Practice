@@ -1,9 +1,15 @@
 #pragma once
-#ifndef _APPLICATIONCLASS_H_
-#define _APPLICATIONCLASS_H_
-
+#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
 #include <windows.h>
 #include "D3DClass.h"
+#include "CameraClass.h"
+#include "ModelClass.h"
+#include "ColorShaderClass.h"
+#include "TextureShaderClass.h"
+#include "LightClass.h"
+#include "LightShaderClass.h"
+#include "InputClass.h"
+
 
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = true;
@@ -14,19 +20,26 @@ class ApplicationClass
 {
 public:
 	ApplicationClass();
-	ApplicationClass(const ApplicationClass&);
-	~ApplicationClass();
+	ApplicationClass(const ApplicationClass&) = default;
+	~ApplicationClass() = default;
 
 	bool Initialize(int, int, HWND);
 	void Shutdown();
 	bool Frame();
 
 private:
-	bool Render();
+	bool Render(float);
 
 private:
 
 	//  D3DClass의 포인터 추가, 이 튜토리얼에서 모든 멤버 변수는 m_접두사를 사용.
 	D3DClass* m_Direct3D;
+	CameraClass* m_Camera;
+	ModelClass* m_Model;
+	ColorShaderClass* m_ColorShader;
+	TextureShaderClass* m_TextureShader;
+	LightShaderClass* m_LightShader;
+	LightClass* m_Light;
+
+	InputClass* m_Input;
 };
-#endif

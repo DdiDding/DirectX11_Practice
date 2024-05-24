@@ -1,9 +1,5 @@
 #include "InputClass.h"
 
-InputClass::InputClass(const InputClass& other)
-{
-}
-
 void InputClass::Initialize()
 {
 	// 키의 값을 누르지 않은 뜻인 false로 모두 초기화
