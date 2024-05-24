@@ -34,3 +34,6 @@
 # Folder
 /.vs
 /x64
+.vs/
+x64/
+DirectX11_Practice/x64/
