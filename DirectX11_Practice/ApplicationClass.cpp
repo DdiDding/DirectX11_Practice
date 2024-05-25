@@ -21,6 +21,7 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
 	bool result;
 	char textureFileName[128];
+	char modelFileName[128];
 
 	// Direct3D 개체를 생성 및 초기화 합니다.
 	m_Direct3D = new D3DClass;
@@ -34,19 +35,21 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+
 	// Create the camera object.
 	m_Camera = new CameraClass;
 
 	// Set the initial position of the camera.
 	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
 
-	// Create and initialize the model object.
+	/////////////////////////////////////////////////////////
+	// 모델 초기화
 	m_Model = new ModelClass;
 
-	/////////////////////////////////////////////////////////
-	// 우리가 불러올 텍스쳐 파일의 이름을 세팅합니다.
+	strcpy_s(modelFileName, "../Models/cube.txt");
+	
 	strcpy_s(textureFileName, "../Textures/stone01.tga");
-	result = m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), textureFileName);
+	result = m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), modelFileName, textureFileName);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -66,7 +69,7 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	// Light 개체를 생성하고 초기화 합니다.
 	m_Light = new LightClass;
 
-	m_Light->SetDiffuseColor(0.0f, 1.0f, 0.0f, 1.0f);
+	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetDirection(0.0f, 0.0f, 1.0f);
 
 	m_Input = new InputClass;
@@ -128,9 +131,9 @@ bool ApplicationClass::Frame()
 
 	// 회전 값을 프레임마다 업데이트 합니다.
 	rotation += 0.005f;
-	if (1.5f < rotation)
+	if (360.f < rotation)
 	{
-		rotation = -1.5f;
+		rotation = 0.0f;
 	}
 
 	// 그래픽 장면을 렌더링합니다. 
@@ -161,18 +164,10 @@ bool ApplicationClass::Render(float rotation)
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 
-	// 삼각형에 rotation값 만큼 회전을 시킵니다.
-	worldMatrix = XMMatrixRotationY(rotation);
+	worldMatrix *= XMMatrixRotationRollPitchYaw(rotation, rotation, rotation);
 
 	// 렌더링 파이프라인에 모델의 정점, 인덱스 버퍼를 배치하여 그릴 준비를 합니다.
 	m_Model->Render(m_Direct3D->GetDeviceContext());
-
-	// ColorShaderClass를 사용하여 모델을 렌더링 합니다.
-	/*result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
-	if (!result)
-	{
-		return false;
-	}*/
 
 	// 텍스처 셰이더를 사용하여 모델을 렌더링합니다.
 	result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(),m_Light->GetDirection(), m_Light->GetDiffuseColor());

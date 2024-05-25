@@ -75,16 +75,22 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
 
+	// Create the vertex array.
+	vertices = new VertexType[m_vertexCount];
+	if (!vertices)
+	{
+		return false;
+	}
+	// Create the index array.
+	indices = new unsigned long[m_indexCount];
+	if (!indices)
+	{
+		return false;
+	}
+
 	///////////////////////////////////////////////////////////////////////////////
 	// Vertex Buffer 持失
 	{
-		// Create the vertex array.
-		vertices = new VertexType[m_vertexCount];
-		if (!vertices)
-		{
-			return false;
-		}
-
 		// Load the vertex array and index array with data.
 		for (int i = 0; i < m_vertexCount; i++)
 		{
@@ -123,14 +129,6 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	///////////////////////////////////////////////////////////////////////////////
 	// Index Buffer 持失
 	{
-		// Create the index array.
-		indices = new unsigned long[m_indexCount];
-		if (!indices)
-		{
-			return false;
-		}
-
-
 		// Set up the description of the static index buffer.
 		indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 		indexBufferDesc.ByteWidth = sizeof(unsigned long) * m_indexCount;
