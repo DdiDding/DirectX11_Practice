@@ -1,5 +1,4 @@
-#ifndef _D3DCLASS_H_
-#define _D3DCLASS_H_
+#pragma once
 
 // DirectX의 라이브러리를 사용한다.
 // #pragma comment : 해당 lib파일을 링크하라는 명령
@@ -53,5 +52,3 @@ private:
     XMMATRIX m_orthoMatrix;
     D3D11_VIEWPORT m_viewport;
 };
-
-#endif

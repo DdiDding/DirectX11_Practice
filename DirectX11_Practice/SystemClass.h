@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _SYSTEMCLASS_H_
-#define _SYSTEMCLASS_H_
 
 // 암호화, DDE, RPC, 셸 및 Windows 소켓과 같은 API를 제외 하여 빌드 프로세스 속도를 향상
 #define WIN32_LEAN_AND_MEAN
@@ -47,9 +45,6 @@ private:
 	ApplicationClass* m_Application;
 };
 
-
 static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 static SystemClass* ApplicationHandle = 0;
-
-#endif
 

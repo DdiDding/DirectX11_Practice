@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _INPUTCLASS_H_
-#define _INPUTCLASS_H_
 
 class InputClass
 {
@@ -19,5 +17,3 @@ public:
 private:
 	bool m_keys[256];
 };
-
-#endif
