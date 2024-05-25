@@ -5,11 +5,19 @@ ModelClass::ModelClass()
 	m_vertexBuffer = nullptr;
 	m_indexBuffer = nullptr;
 	m_Texture = nullptr;
+	m_model = nullptr;
 }
 
-bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* textureFilename)
+bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* modelFilename, char* textureFilename)
 {
 	bool result;
+
+	// Load in the model data
+	result = LoadModel(modelFilename);
+	if (!result)
+	{
+		return false;
+	}
 
 	// Initialize the vertex and index buffers.
 	result = InitializeBuffers(device);
@@ -30,6 +38,8 @@ bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 
 void ModelClass::Shutdown()
 {
+	ReleaseModel();
+
 	ReleaseTexture();
 
 	// Shutdown the vertex and index buffers.
@@ -45,7 +55,6 @@ void ModelClass::Render(ID3D11DeviceContext* deviceContext)
 
 	return;
 }
-
 
 int ModelClass::GetIndexCount()
 {
@@ -69,7 +78,6 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	///////////////////////////////////////////////////////////////////////////////
 	// Vertex Buffer 생성
 	{
-		m_vertexCount = 4;
 		// Create the vertex array.
 		vertices = new VertexType[m_vertexCount];
 		if (!vertices)
@@ -77,23 +85,15 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 			return false;
 		}
 
-		// Load the vertex array with data. (x, y, z)
-		vertices[0].position = XMFLOAT3(-1.0f, 1.0f, 0.0f);  // Top left.
-		vertices[0].texture = XMFLOAT2(0.0f, 0.0f);
-		vertices[0].normal = XMFLOAT3(0.0f, 0.0f,-1.0f); // 법선 벡터 추가
+		// Load the vertex array and index array with data.
+		for (int i = 0; i < m_vertexCount; i++)
+		{
+			vertices[i].position = XMFLOAT3(m_model[i].x, m_model[i].y, m_model[i].z);
+			vertices[i].texture = XMFLOAT2(m_model[i].tu, m_model[i].tv);
+			vertices[i].normal = XMFLOAT3(m_model[i].nx, m_model[i].ny, m_model[i].nz);
 
-		vertices[1].position = XMFLOAT3(1.0f, 1.0f, 0.0f);  // Top right
-		vertices[1].texture = XMFLOAT2(1.0f, 0.0f);
-		vertices[1].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
-
-		vertices[2].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
-		vertices[2].texture = XMFLOAT2(0.0f, 1.0f);
-		vertices[2].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
-
-
-		vertices[3].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
-		vertices[3].texture = XMFLOAT2(1.0f, 1.0f);
-		vertices[3].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
+			indices[i] = i;
+		}
 
 		// Set up the description of the static vertex buffer.
 		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -123,8 +123,6 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	///////////////////////////////////////////////////////////////////////////////
 	// Index Buffer 생성
 	{
-		m_indexCount = 6;
-
 		// Create the index array.
 		indices = new unsigned long[m_indexCount];
 		if (!indices)
@@ -132,14 +130,6 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 			return false;
 		}
 
-		// Load the index array with data.
-		indices[0] = 2;  // Bottom left.
-		indices[1] = 0;  // Top left.
-		indices[2] = 3;  // Bottom right.
-
-		indices[3] = 3;  // Bottom right.
-		indices[4] = 0;  // Top left.
-		indices[5] = 1;  // Top right.
 
 		// Set up the description of the static index buffer.
 		indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -233,6 +223,72 @@ void ModelClass::ReleaseTexture()
 		m_Texture->Shutdown();
 		delete m_Texture;
 		m_Texture = nullptr;
+	}
+
+	return;
+}
+
+bool ModelClass::LoadModel(char* filename)
+{
+	ifstream fin;
+	char input;
+	int i;
+
+	// 파일 오픈.
+	fin.open(filename);
+
+	// 파일을 열수 없으면 종료.
+	if (fin.fail())
+	{
+		return false;
+	}
+
+	// 정점 개수가 나오기 전까지 읽어냅니다.
+	fin.get(input);
+	while (input != ':')
+	{
+		fin.get(input);
+	}
+
+	// 나머지 줄을 읽어 정점 개수를 m_vertexCount에 가져옵니다.
+	fin >> m_vertexCount;
+
+	// 인덱스의 개수는 정점 개수와 같습니다.
+	m_indexCount = m_vertexCount;
+
+	// 읽어온 정점 개수를 사용하여 배열을 만들어 포인터에 넣습니다.
+	m_model = new ModelType[m_vertexCount];
+
+	// 정점 데이터가 나오기 전까지 읽어냅니다.
+	fin.get(input);
+	while (input != ':')
+	{
+		fin.get(input);
+	}
+	// 공백문자 읽어내기
+	fin.get(input);
+	fin.get(input);
+
+	// 정점 데이터를 읽습니다 
+	for (i = 0; i < m_vertexCount; i++)
+	{
+		fin >> m_model[i].x >> m_model[i].y >> m_model[i].z;
+		fin >> m_model[i].tu >> m_model[i].tv;
+		fin >> m_model[i].nx >> m_model[i].ny >> m_model[i].nz;
+	}
+
+	// 파일 닫기
+	fin.close();
+
+	return true;
+}
+
+void ModelClass::ReleaseModel()
+{
+	if (m_model)
+	{
+		delete[] m_model;
+		m_model = 0;
 	}
 
 	return;
