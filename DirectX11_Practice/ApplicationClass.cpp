@@ -3,6 +3,17 @@
 #include <fstream>
 // 파일 쓰기시 "<<" 연산자를 사용할것이기에 include
 #include <iostream>
+#include <fbxsdk.h>
+
+#if _DEBUG
+#pragma comment (lib, "C:\\Program Files\\Autodesk\\FBX\\FBX SDK\\2020.3.7\\lib\\x64\\debug\\libfbxsdk-md.lib")
+#pragma comment (lib, "C:\\Program Files\\Autodesk\\FBX\\FBX SDK\\2020.3.7\\lib\\x64\\debug\\libxml2-md.lib")
+#pragma comment (lib, "C:\\Program Files\\Autodesk\\FBX\\FBX SDK\\2020.3.7\\lib\\x64\\debug\\zlib-md.lib")
+#else
+#pragma comment (lib, "C:\\Program Files\\Autodesk\\FBX\\FBX SDK\\2020.3.7\\lib\\x64\\release\\libfbxsdk-md.lib")
+#pragma comment (lib, "C:\\Program Files\\Autodesk\\FBX\\FBX SDK\\2020.3.7\\lib\\x64\\release\\libxml2-md.lib")
+#pragma comment (lib, "C:\\Program Files\\Autodesk\\FBX\\FBX SDK\\2020.3.7\\lib\\x64\\release\\zlib-md.lib")
+#endif
 
 ApplicationClass::ApplicationClass()
 {
@@ -14,6 +25,7 @@ ApplicationClass::ApplicationClass()
 	m_LightShader = nullptr;
 	m_Light = nullptr;
 	m_Input = nullptr;
+	FbxManager::Create();
 }
 
 
