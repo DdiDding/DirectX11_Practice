@@ -6,6 +6,8 @@
 using namespace DirectX;
 using namespace std;
 
+class FbxTool;
+
 class ModelClass
 {
 private:
@@ -54,4 +56,6 @@ private:
 
 	TextureClass* m_Texture;
 	ModelType* m_model;
+
+	FbxTool* fbx;
 };

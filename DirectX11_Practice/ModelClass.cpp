@@ -1,4 +1,5 @@
 #include "ModelClass.h"
+#include "FbxTool.h"
 
 ModelClass::ModelClass()
 {
@@ -6,6 +7,7 @@ ModelClass::ModelClass()
 	m_indexBuffer = nullptr;
 	m_Texture = nullptr;
 	m_model = nullptr;
+	fbx = nullptr;
 }
 
 bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* modelFilename, char* textureFilename)
