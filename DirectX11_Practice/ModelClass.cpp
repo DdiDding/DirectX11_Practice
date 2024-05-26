@@ -14,6 +14,11 @@ bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 {
 	bool result;
 
+	fbx = new FbxTool();
+	fbx->Initialize();
+
+	fbx->Load("../Models/AnimMan.FBX");
+
 	// Load in the model data
 	result = LoadModel(modelFilename);
 	if (!result)
