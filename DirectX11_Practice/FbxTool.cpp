@@ -17,8 +17,6 @@ FbxTool::FbxTool()
 {
 	m_manager = nullptr;
 	m_scene = nullptr;
-
-	
 }
 
 bool FbxTool::Initialize()
@@ -44,7 +42,6 @@ bool FbxTool::Initialize()
 	(*(m_manager->GetIOSettings())).SetBoolProp(IMP_FBX_ANIMATION, false);
 	(*(m_manager->GetIOSettings())).SetBoolProp(IMP_FBX_GLOBAL_SETTINGS, false);
 
-	
 	
 
 	m_importer = FbxImporter::Create(m_manager, "");
@@ -76,16 +73,79 @@ bool FbxTool::Load(const char* fileName)
 	// 임포트 후 임포터는 해제하여 메로리 사용량을 줄입니다.
 	m_importer->Destroy();
 
-	FbxMesh* mesh;
-	FbxNode* root = m_scene->GetRootNode();
-	cout << root->GetName() << "//" << root->GetChildCount() << endl; //anim man
-	mesh = root->GetMesh();
+	// 메시 저장
+	ret = FindMesh(m_scene->GetRootNode());
+	if (ret == false) return false;
 
-	FbxNode* child2_2 = root->GetChild(0)->GetChild(1);
-	cout << child2_2->GetName() << "//" << child2_2->GetChildCount() << endl; //anim man -> mesh임!
-	mesh = child2_2->GetMesh();
+	SaveVertex();
 
-	cout << mesh->GetName()<<mesh->GetPolygonCount();
+	return false;
+}
+
+
+bool FbxTool::FindMesh(FbxNode* node)
+{
+	// 찾은 노드가 메시타입이면 메시에 저장 후 반환합니다.
+	cout << node->GetTypeName() << endl;
+	FbxNodeAttribute* attribute = node->GetNodeAttribute();
+	if (node->GetNodeAttribute() != nullptr)
+	{
+		if (node->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eMesh)
+		{
+			m_mesh = node->GetMesh();
+			return true;
+		}
+	}
+	
+	// 노드에 자식만큼 for문 진행
+	int childCnt = node->GetChildCount();
+	for (int i = 0; i < childCnt; ++i)
+	{
+		if (FindMesh(node->GetChild(i)) == true)
+		{
+			return true;
+		}
+	}
+	
+	// 다 순회해도 메시가 없으면 false반환합니다.
+	return false;
+}
+
+
+
+bool FbxTool::SaveVertex()
+{
+	int polygonCnt = m_mesh->GetPolygonCount();
+	
+	// 정점의 개수
+	int vertexCnt = m_mesh->GetControlPointsCount();
+	// 정점의 배열 포인터 얻기
+	FbxVector4* vertices = m_mesh->GetControlPoints();
+	
+
+	int indexCnt = m_mesh->GetPolygonVertexCount();
+	int* indices = m_mesh->GetPolygonVertices();
+
+	// 정점 위치 구하기 
+	for (int i = 0; i < vertexCnt; ++i)
+	{
+		 //XMFLOAT3 = vertices[i];
+	}
+
+
+
+	// 정점 인덱스 구하기
+	// 삼각형 개수 만큼 반복
+	for (int i = 0; i < polygonCnt; ++i)
+	{ 
+
+		// 삼각형의 세 점 
+		for (int j = 0; j < 3; ++j)
+		{
+			int vertexIndex = m_mesh->GetPolygonVertex(i, j);
+			std::cout << "Polygon " << i << " Vertex " << j << ": " << vertexIndex << std::endl;
+		}
+	}
 
 
 	return false;
