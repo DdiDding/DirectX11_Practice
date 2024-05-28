@@ -41,7 +41,7 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	m_Camera = new CameraClass;
 
 	// Set the initial position of the camera.
-	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
+	m_Camera->SetPosition(0.0f, 0.0f, -500.0f);
 
 	/////////////////////////////////////////////////////////
 	// 모델 초기화
@@ -58,21 +58,35 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	// Light shader 개체를 생성하고 초기화 합니다.
-	m_LightShader = new LightShaderClass;
-
-	result = m_LightShader->Initialize(m_Direct3D->GetDevice(), hwnd);
-	if (!result)
+	// Color shader 생성
 	{
-		MessageBox(hwnd, L"Could not initialize the light shader object.", L"Error", MB_OK);
-		return false;
+		m_ColorShader = new ColorShaderClass;
+		result = m_ColorShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+		if (!result)
+		{
+			MessageBox(hwnd, L"Could not initialize the light shader object.", L"Error", MB_OK);
+			return false;
+		}
 	}
 
-	// Light 개체를 생성하고 초기화 합니다.
-	m_Light = new LightClass;
 
-	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetDirection(0.0f, 0.0f, 1.0f);
+	// Light shader 개체를 생성하고 초기화 합니다.
+	{
+		//m_LightShader = new LightShaderClass;
+
+		//result = m_LightShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+		//if (!result)
+		//{
+		//	MessageBox(hwnd, L"Could not initialize the light shader object.", L"Error", MB_OK);
+		//	return false;
+		//}
+
+		//// Light 개체를 생성하고 초기화 합니다.
+		//m_Light = new LightClass;
+
+		//m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+		//m_Light->SetDirection(0.0f, 0.0f, 1.0f);
+	}
 
 	m_Input = new InputClass;
 	m_Input->Initialize();
@@ -132,7 +146,7 @@ bool ApplicationClass::Frame()
 	bool result;
 
 	// 회전 값을 프레임마다 업데이트 합니다.
-	rotation += 0.005f;
+	//rotation += 0.005f;
 	if (360.f < rotation)
 	{
 		rotation = 0.0f;
@@ -171,8 +185,11 @@ bool ApplicationClass::Render(float rotation)
 	// 렌더링 파이프라인에 모델의 정점, 인덱스 버퍼를 배치하여 그릴 준비를 합니다.
 	m_Model->Render(m_Direct3D->GetDeviceContext());
 
+	
 	// 텍스처 셰이더를 사용하여 모델을 렌더링합니다.
-	result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(),m_Light->GetDirection(), m_Light->GetDiffuseColor());
+	result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
+
+	/*result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(),m_Light->GetDirection(), m_Light->GetDiffuseColor());*/
 	if (!result)
 	{
 		return false;

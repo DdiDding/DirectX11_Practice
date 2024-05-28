@@ -53,8 +53,11 @@ private:
 
 	TextureClass* m_Texture;
 	ModelType* m_model;
-	VertexType* m_vertices;
+
+	VertexColor* m_vertices;
 	unsigned int* m_indices;
 
-	FbxTool* fbx;
+	
+
+	FbxTool* m_fbx;
 };

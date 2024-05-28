@@ -57,11 +57,11 @@ bool FbxTool::Initialize()
 	return true;
 }
 
-bool FbxTool::Load(const char* fileName, VertexType** vertices, unsigned int** indices)
+bool FbxTool::Load(const char* fileName)
 {
 	bool ret;
 
-	// 임포터 초기화
+	// 1. 임포터 초기화
 	ret = m_importer->Initialize(fileName, -1, m_manager->GetIOSettings());
 	if (ret == false)
 	{
@@ -73,11 +73,12 @@ bool FbxTool::Load(const char* fileName, VertexType** vertices, unsigned int** i
 	// 임포트 후 임포터는 해제하여 메로리 사용량을 줄입니다.
 	m_importer->Destroy();
 
-	// 메시 저장
+	// 2. 메시 저장
 	ret = FindMesh(m_scene->GetRootNode());
 	if (ret == false) return false;
 
-	SaveVertexData(vertices, indices);
+	// 3. 메시의 정점 데이터(위치, 인덱스) 저장
+	SaveVertexData();
 
 	return false;
 }
@@ -111,12 +112,12 @@ bool FbxTool::FindMesh(FbxNode* node)
 	return false;
 }
 
-bool FbxTool::SaveVertexData(VertexType** vertices, unsigned int** indices)
+bool FbxTool::SaveVertexData()
 {
 	// 정점의 개수
 	int vertexCnt = m_mesh->GetControlPointsCount();
 	// 정점 데이터 생성
-	*vertices = new VertexType[vertexCnt];
+	m_pos = new XMFLOAT3[vertexCnt];
 	// 정점의 배열 포인터 얻기
 	FbxVector4* position = m_mesh->GetControlPoints();
 
@@ -126,12 +127,12 @@ bool FbxTool::SaveVertexData(VertexType** vertices, unsigned int** indices)
 		float x = static_cast<float>(position[i][0]);
 		float y = static_cast<float>(position[i][1]);
 		float z = static_cast<float>(position[i][2]);
-		(*vertices)[i].position = XMFLOAT3(x, y, z);
+		m_pos[i] = XMFLOAT3(x, y, z);
 	}
 
 	// 인덱스 개수
 	int indexCnt = m_mesh->GetPolygonVertexCount() * 3;
-	*indices = new unsigned int[indexCnt];
+	m_idx = new unsigned int[indexCnt];
 
 	// 정점 인덱스 구하기 , // 삼각형 개수 만큼 반복
 	int polygonCnt = m_mesh->GetPolygonCount();
@@ -140,7 +141,7 @@ bool FbxTool::SaveVertexData(VertexType** vertices, unsigned int** indices)
 		// 삼각형의 세 점 
 		for (int j = 0; j < 3; ++j)
 		{
-			(*indices)[(i*3) + j] = m_mesh->GetPolygonVertex(i, j);
+			m_idx[(i*3) + j] = m_mesh->GetPolygonVertex(i, j);
 		}
 	}
 

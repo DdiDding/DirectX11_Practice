@@ -16,13 +16,18 @@ public:
 
 	bool Initialize();
 
-
-	bool Load(const char* fileName, VertexType** vertices, unsigned int** indices);
+	bool Load(const char* fileName);
 	
+	XMFLOAT3* GetVertexPos() { return m_pos; };
+	unsigned int* GetVertexIdx() { return m_idx; };
+
+
+private:
+
 	// 재귀로 메시 노드를 찾아 m_mesh에 저장합니다.
 	bool FindMesh(FbxNode* node);
 
-	bool SaveVertexData(VertexType** vertices, unsigned int** indices);
+	bool SaveVertexData();
 
 	void Shotdown();
 
@@ -33,4 +38,7 @@ private:
 	FbxImporter* m_importer;
 	FbxScene* m_scene;
 	FbxMesh* m_mesh;
+
+	XMFLOAT3* m_pos;
+	unsigned int* m_idx;
 };

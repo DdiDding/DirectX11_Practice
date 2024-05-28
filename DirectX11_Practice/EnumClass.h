@@ -8,3 +8,9 @@ struct VertexType
 	XMFLOAT2 texture;
 	XMFLOAT3 normal;
 };
+
+struct VertexColor
+{
+	XMFLOAT3 position;
+	XMFLOAT4 color;
+};

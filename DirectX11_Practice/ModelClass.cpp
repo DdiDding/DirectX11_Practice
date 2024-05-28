@@ -1,4 +1,5 @@
 #include "ModelClass.h"
+#include <iostream>
 #include "FbxTool.h"
 
 ModelClass::ModelClass()
@@ -7,15 +8,15 @@ ModelClass::ModelClass()
 	m_indexBuffer = nullptr;
 	m_Texture = nullptr;
 	m_model = nullptr;
-	fbx = nullptr;
+	m_fbx = nullptr;
 }
 
 bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* modelFilename, char* textureFilename)
 {
 	bool result;
 
-	fbx = new FbxTool();
-	fbx->Initialize();
+	m_fbx = new FbxTool();
+	m_fbx->Initialize();
 
 	LoadFBX(modelFilename);
 	//LoadFBX("../Models/AnimMan.FBX");
@@ -37,11 +38,11 @@ bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 	}
 
 	// Load the texture for this model.
-	result = LoadTexture(device, deviceContext, textureFilename);
+	/*result = LoadTexture(device, deviceContext, textureFilename);
 	if (!result)
 	{
 		return false;
-	}
+	}*/
 
 	return true;
 }
@@ -79,48 +80,33 @@ ID3D11ShaderResourceView* ModelClass::GetTexture()
 
 bool ModelClass::InitializeBuffers(ID3D11Device* device)
 {
-	VertexType* vertices;
-	unsigned long* indices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
 
-	// Create the vertex array.
-	vertices = new VertexType[m_vertexCount];
-	if (!vertices)
-	{
-		return false;
-	}
-	// Create the index array.
-	indices = new unsigned long[m_indexCount];
-	if (!indices)
-	{
-		return false;
-	}
-
 	///////////////////////////////////////////////////////////////////////////////
 	// Vertex Buffer 持失
 	{
-		// Load the vertex array and index array with data.
-		for (int i = 0; i < m_vertexCount; i++)
-		{
-			vertices[i].position = XMFLOAT3(m_model[i].x, m_model[i].y, m_model[i].z);
-			vertices[i].texture = XMFLOAT2(m_model[i].tu, m_model[i].tv);
-			vertices[i].normal = XMFLOAT3(m_model[i].nx, m_model[i].ny, m_model[i].nz);
+		m_vertexCount = _msize(m_fbx->GetVertexPos()) / sizeof(XMFLOAT3);
+		m_vertices = new VertexColor[m_vertexCount];
 
-			indices[i] = i;
+		// Load the vertex array and index array with data.
+ 		for (int i = 0; i < m_vertexCount; i++)
+		{
+			m_vertices[i].position = m_fbx->GetVertexPos()[i];
+			m_vertices[i].color = XMFLOAT4(1, 0, 0, 1);
 		}
 
 		// Set up the description of the static vertex buffer.
 		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		vertexBufferDesc.ByteWidth = sizeof(VertexType) * m_vertexCount;
+		vertexBufferDesc.ByteWidth = sizeof(VertexColor) * m_vertexCount;
 		vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		vertexBufferDesc.CPUAccessFlags = 0;
 		vertexBufferDesc.MiscFlags = 0;
 		vertexBufferDesc.StructureByteStride = 0;
 
 		// Give the subresource structure a pointer to the vertex data.
-		vertexData.pSysMem = vertices;
+		vertexData.pSysMem = m_vertices;
 		vertexData.SysMemPitch = 0;
 		vertexData.SysMemSlicePitch = 0;
 
@@ -132,23 +118,26 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 		}
 
 		// Release the arrays now that the vertex and index buffers have been created and loaded.
-		delete[] vertices;
-		vertices = 0;
+		delete[] m_vertices;
+		m_vertices = 0;
 	}
 	
 	///////////////////////////////////////////////////////////////////////////////
 	// Index Buffer 持失
 	{
+		m_indices = m_fbx->GetVertexIdx();
+		m_indexCount = _msize(m_indices) / sizeof(unsigned int);
+
 		// Set up the description of the static index buffer.
 		indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		indexBufferDesc.ByteWidth = sizeof(unsigned long) * m_indexCount;
+		indexBufferDesc.ByteWidth = sizeof(unsigned int) * m_indexCount;
 		indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		indexBufferDesc.CPUAccessFlags = 0;
 		indexBufferDesc.MiscFlags = 0;
 		indexBufferDesc.StructureByteStride = 0;
 
 		// Give the subresource structure a pointer to the index data.
-		indexData.pSysMem = indices;
+		indexData.pSysMem = m_indices;
 		indexData.SysMemPitch = 0;
 		indexData.SysMemSlicePitch = 0;
 
@@ -159,8 +148,8 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 			return false;
 		}
 
-		delete[] indices;
-		indices = 0;
+		delete[] m_indices;
+		m_indices = 0;
 	}
 
 	return true;
@@ -282,13 +271,13 @@ bool ModelClass::LoadModel(char* filename)
 
 bool ModelClass::LoadFBX(char* fbxFileName)
 {
-	assert(fbx);
+	assert(m_fbx);
 
 	XMFLOAT3** vertexPos = nullptr;
 	int** vertexIdx = nullptr;
 	m_vertexCount = 0;
 
-	if (fbx->Load(fbxFileName, &m_vertices, &m_indices) == false) return false;
+	if (m_fbx->Load(fbxFileName) == false) return false;
 
 	return false;
 }
