@@ -3,7 +3,9 @@
 #include <fstream>
 // 파일 쓰기시 "<<" 연산자를 사용할것이기에 include
 #include <iostream>
-
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx11.h"
 
 ApplicationClass::ApplicationClass()
 {
@@ -36,6 +38,18 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplWin32_Init(hwnd);
+	ImGui_ImplDX11_Init(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext());
+	ImGui::StyleColorsDark();
+	
 
 	// Create the camera object.
 	m_Camera = new CameraClass;
@@ -175,6 +189,12 @@ bool ApplicationClass::Render(float rotation)
 	// 화면을 검은색으로 초기화
 	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
+	// Imgui Render
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+	ImGui::ShowDemoWindow(); // Show demo window! :)
+
 	// 카메라 위치를 기반으로 뷰 행렬 생성
 	m_Camera->Render();
 
@@ -192,11 +212,16 @@ bool ApplicationClass::Render(float rotation)
 	// 텍스처 셰이더를 사용하여 모델을 렌더링합니다.
 	result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
 
-	/*result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(),m_Light->GetDirection(), m_Light->GetDiffuseColor());*/
+	/*result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(),m_Light->GetDirection(), m_Light->GetDiffuseColor());
 	if (!result)
 	{
 		return false;
-	}
+	}*/
+
+	// End Rendering
+	// (Your code clears your framebuffer, renders your other stuff etc.)
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	// 렌더링된 장면을 화면에 표시한다.
 	m_Direct3D->EndScene();

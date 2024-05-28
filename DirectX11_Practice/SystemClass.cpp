@@ -1,5 +1,5 @@
 #include "SystemClass.h"
-
+#include "Imgui.h"
 
 SystemClass::SystemClass()
 {
@@ -227,7 +227,7 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 	SetFocus(m_hwnd);
 
 	// 마우스 커서를 숨긴다.
-	ShowCursor(false);
+	ShowCursor(true);
 
 	return;
 }
@@ -257,8 +257,12 @@ void SystemClass::ShutdownWindows()
 	return;
 }
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
 {
+	if (ImGui_ImplWin32_WndProcHandler(hwnd, umessage, wparam, lparam))
+		return true;
+
 	switch (umessage)
 	{
 		// Check if the window is being destroyed.

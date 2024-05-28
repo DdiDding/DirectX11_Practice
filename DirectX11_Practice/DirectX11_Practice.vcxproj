@@ -142,7 +142,6 @@
     <ClInclude Include="D3DClass.h" />
     <ClInclude Include="EnumClass.h" />
     <ClInclude Include="FbxTool.h" />
-    <ClInclude Include="ImguiTool.h" />
     <ClInclude Include="Imgui\backends\imgui_impl_dx11.h" />
     <ClInclude Include="Imgui\backends\imgui_impl_win32.h" />
     <ClInclude Include="Imgui\imconfig.h" />
@@ -169,7 +168,6 @@
     <ClCompile Include="ColorShaderClass.cpp" />
     <ClCompile Include="D3DClass.cpp" />
     <ClCompile Include="FbxTool.cpp" />
-    <ClCompile Include="ImguiTool.cpp" />
     <ClCompile Include="Imgui\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="Imgui\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="Imgui\imgui.cpp" />

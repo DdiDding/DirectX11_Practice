@@ -22,6 +22,15 @@
     <Filter Include="Source Files\Utils">
       <UniqueIdentifier>{78cd979c-f31d-41c6-8370-adb073d806f3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Utils">
+      <UniqueIdentifier>{0faed2fc-1f0a-4454-a5dc-9461f81be03d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Imgui">
+      <UniqueIdentifier>{7bd15177-4b84-4279-9ea7-97531a5419e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Imgui\backends">
+      <UniqueIdentifier>{457c0ebb-7831-4404-a776-a3b224be0de1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -69,9 +78,6 @@
     <ClInclude Include="LightClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FbxTool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="EnumClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -96,11 +102,11 @@
     <ClInclude Include="Imgui\backends\imgui_impl_win32.h">
       <Filter>Imgui\backends</Filter>
     </ClInclude>
-    <ClInclude Include="ImguiTool.h">
+    <ClInclude Include="FbxTool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Imgui\imgui.h">
-      <Filter>Source Files\Utils</Filter>
+      <Filter>Imgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -143,29 +149,26 @@
     <ClCompile Include="FbxTool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Imgui\imgui_demo.cpp">
-      <Filter>Imgui</Filter>
-    </ClCompile>
     <ClCompile Include="Imgui\imgui_draw.cpp">
-      <Filter>Imgui</Filter>
+      <Filter>Source Files\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui_demo.cpp">
+      <Filter>Source Files\Imgui</Filter>
     </ClCompile>
     <ClCompile Include="Imgui\imgui_tables.cpp">
-      <Filter>Imgui</Filter>
+      <Filter>Source Files\Imgui</Filter>
     </ClCompile>
     <ClCompile Include="Imgui\imgui_widgets.cpp">
-      <Filter>Imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="Imgui\backends\imgui_impl_dx11.cpp">
-      <Filter>Imgui\backends</Filter>
-    </ClCompile>
-    <ClCompile Include="Imgui\backends\imgui_impl_win32.cpp">
-      <Filter>Imgui\backends</Filter>
-    </ClCompile>
-    <ClCompile Include="ImguiTool.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Imgui</Filter>
     </ClCompile>
     <ClCompile Include="Imgui\imgui.cpp">
-      <Filter>Source Files\Utils</Filter>
+      <Filter>Source Files\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\backends\imgui_impl_win32.cpp">
+      <Filter>Source Files\Imgui\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\backends\imgui_impl_dx11.cpp">
+      <Filter>Source Files\Imgui\backends</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
