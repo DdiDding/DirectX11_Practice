@@ -193,8 +193,37 @@ bool ApplicationClass::Render(float rotation)
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
-	ImGui::ShowDemoWindow(); // Show demo window! :)
+	
+	bool openFile = false;
+	ImGui::Begin("File Selection");
+	if (ImGui::Button("Open File") == true)
+	{
+		openFile = true;
+	}
+	ImGui::End();
 
+	cout << openFile << endl;
+
+	if (openFile == true)
+	{
+		ImGui::OpenPopup("File Browser");
+	}
+	if (ImGui::BeginPopupModal("File Browser", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+		// 여기에서 파일 대화 상자를 ImGui로 구현할 수 있습니다.
+		ImGui::Text("Select a file or cancel:");
+		if (ImGui::Button("OK")) {
+			// 사용자가 "OK"를 클릭하여 파일을 선택하면 콜백 함수 호출하여 선택한 파일의 경로를 설정합니다.
+			// 여기서는 콘솔에 출력하는 예시로 대체합니다.
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel")) {
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+
+	
 	// 카메라 위치를 기반으로 뷰 행렬 생성
 	m_Camera->Render();
 

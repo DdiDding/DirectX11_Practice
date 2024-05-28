@@ -108,6 +108,9 @@
     <ClInclude Include="Imgui\imgui.h">
       <Filter>Imgui</Filter>
     </ClInclude>
+    <ClInclude Include="Imgui\L2DFileDialog.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
