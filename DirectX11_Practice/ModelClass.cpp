@@ -47,18 +47,6 @@ bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 	return true;
 }
 
-void ModelClass::Shutdown()
-{
-	ReleaseModel();
-
-	ReleaseTexture();
-
-	// Shutdown the vertex and index buffers.
-	ShutdownBuffers();
-
-	return;
-}
-
 void ModelClass::Render(ID3D11DeviceContext* deviceContext)
 {
 	// vertex and index buffers를 렌더링 파이프 라인에 배치합니다.
@@ -97,6 +85,22 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 			m_vertices[i].color = XMFLOAT4(1, 0, 0, 1);
 		}
 
+
+		// Test vertex
+		/*
+		m_vertexCount = 3;
+		m_vertices = new VertexColor[3];
+
+		m_vertices[0].position = XMFLOAT3(-1, 0, 0);
+		m_vertices[0].color = XMFLOAT4(1, 0, 0, 1);
+
+		m_vertices[1].position = XMFLOAT3(0, 1, 0);
+		m_vertices[1].color = XMFLOAT4(1, 0, 0, 1);
+
+		m_vertices[2].position = XMFLOAT3(1, 0, 0);
+		m_vertices[2].color = XMFLOAT4(1, 0, 0, 1);*/
+
+
 		// Set up the description of the static vertex buffer.
 		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 		vertexBufferDesc.ByteWidth = sizeof(VertexColor) * m_vertexCount;
@@ -127,6 +131,15 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	{
 		m_indices = m_fbx->GetVertexIdx();
 		m_indexCount = _msize(m_indices) / sizeof(unsigned int);
+
+
+		/*m_indexCount = 3;
+		m_indices = new unsigned int[6];
+
+		m_indices[0] = 0;
+		m_indices[1] = 1;
+		m_indices[2] = 2;*/
+
 
 		// Set up the description of the static index buffer.
 		indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -181,7 +194,7 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 
 
 	// Set vertex buffer stride and offset.
-	stride = sizeof(VertexType);
+	stride = sizeof(VertexColor);
 	offset = 0;
 
 	// Set the vertex buffer to active in the input assembler so it can be rendered.
@@ -281,6 +294,20 @@ bool ModelClass::LoadFBX(char* fbxFileName)
 
 	return false;
 }
+
+
+void ModelClass::Shutdown()
+{
+	ReleaseModel();
+
+	ReleaseTexture();
+
+	// Shutdown the vertex and index buffers.
+	ShutdownBuffers();
+
+	return;
+}
+
 
 void ModelClass::ReleaseModel()
 {

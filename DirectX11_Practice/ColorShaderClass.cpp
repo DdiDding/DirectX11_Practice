@@ -17,7 +17,7 @@ bool ColorShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Set the filename of the vertex shader.
-	error = wcscpy_s(vsFilename, 128, L"ColorVS.hlsl");
+	error = wcscpy_s(vsFilename, 128, L"Color.vs");
 	if (error != 0)
 	{
 		return false;

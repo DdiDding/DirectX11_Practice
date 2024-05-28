@@ -46,17 +46,20 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	/////////////////////////////////////////////////////////
 	// 모델 초기화
 	m_Model = new ModelClass;
+	// 파일 이름 지정
+	strcpy_s(modelFileName, "../Models/AnimMan.fbx");
+	m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), modelFileName, textureFileName);
 
-	//strcpy_s(modelFileName, "../Models/cube.txt");
-	strcpy_s(modelFileName, "../Models/AnimMan.FBX");
-
+	/*
+	* //strcpy_s(modelFileName, "../Models/cube.txt");
+	
 	strcpy_s(textureFileName, "../Textures/stone01.tga");
 	result = m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), modelFileName, textureFileName);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
 		return false;
-	}
+	}*/
 
 	// Color shader 생성
 	{

@@ -34,15 +34,14 @@ bool FbxTool::Initialize()
 	m_manager->SetIOSettings(ios);
 
 	// 가져올 데이터의 종류 결정
-	(*(m_manager->GetIOSettings())).SetBoolProp(IMP_FBX_MATERIAL, false);
+	/*(*(m_manager->GetIOSettings())).SetBoolProp(IMP_FBX_MATERIAL, false);
 	(*(m_manager->GetIOSettings())).SetBoolProp(IMP_FBX_TEXTURE, false);
 	(*(m_manager->GetIOSettings())).SetBoolProp(IMP_FBX_LINK, false);
 	(*(m_manager->GetIOSettings())).SetBoolProp(IMP_FBX_SHAPE, true);
 	(*(m_manager->GetIOSettings())).SetBoolProp(IMP_FBX_GOBO, false);
 	(*(m_manager->GetIOSettings())).SetBoolProp(IMP_FBX_ANIMATION, false);
-	(*(m_manager->GetIOSettings())).SetBoolProp(IMP_FBX_GLOBAL_SETTINGS, false);
+	(*(m_manager->GetIOSettings())).SetBoolProp(IMP_FBX_GLOBAL_SETTINGS, false);*/
 
-	
 
 	m_importer = FbxImporter::Create(m_manager, "");
 
@@ -73,6 +72,16 @@ bool FbxTool::Load(const char* fileName)
 	// 임포트 후 임포터는 해제하여 메로리 사용량을 줄입니다.
 	m_importer->Destroy();
 
+	// 좌표축 가져오기
+	FbxAxisSystem axisSytstem = m_scene->GetGlobalSettings().GetAxisSystem();
+	// 씬 내의 좌표축 바꾸기
+	//FbxAxisSystem::DirectX.ConvertScene(m_scene);
+	//FbxAxisSystem::MayaYUp.ConvertScene(m_scene);
+
+	// 삼각형화할 수 있는 노드를 삼각형화 시키기
+	FbxGeometryConverter converter(m_manager);
+	converter.Triangulate(m_scene, true);
+
 	// 2. 메시 저장
 	ret = FindMesh(m_scene->GetRootNode());
 	if (ret == false) return false;
@@ -87,7 +96,6 @@ bool FbxTool::Load(const char* fileName)
 bool FbxTool::FindMesh(FbxNode* node)
 {
 	// 찾은 노드가 메시타입이면 메시에 저장 후 반환합니다.
-	cout << node->GetTypeName() << endl;
 	FbxNodeAttribute* attribute = node->GetNodeAttribute();
 	if (node->GetNodeAttribute() != nullptr)
 	{
@@ -125,13 +133,13 @@ bool FbxTool::SaveVertexData()
 	for (int i = 0; i < vertexCnt; ++i)
 	{
 		float x = static_cast<float>(position[i][0]);
-		float y = static_cast<float>(position[i][1]);
-		float z = static_cast<float>(position[i][2]);
+		float y = static_cast<float>(position[i][2]);
+		float z = static_cast<float>(position[i][1]);
 		m_pos[i] = XMFLOAT3(x, y, z);
 	}
 
 	// 인덱스 개수
-	int indexCnt = m_mesh->GetPolygonVertexCount() * 3;
+	int indexCnt = m_mesh->GetPolygonCount() * 3;
 	m_idx = new unsigned int[indexCnt];
 
 	// 정점 인덱스 구하기 , // 삼각형 개수 만큼 반복
