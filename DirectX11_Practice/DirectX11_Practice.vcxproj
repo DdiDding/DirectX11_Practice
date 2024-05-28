@@ -137,6 +137,7 @@
     <ClInclude Include="CameraClass.h" />
     <ClInclude Include="ColorShaderClass.h" />
     <ClInclude Include="D3DClass.h" />
+    <ClInclude Include="EnumClass.h" />
     <ClInclude Include="FbxTool.h" />
     <ClInclude Include="LightClass.h" />
     <ClInclude Include="LightShaderClass.h" />

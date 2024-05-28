@@ -47,8 +47,9 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	// ¸ðµ¨ ÃÊ±âÈ­
 	m_Model = new ModelClass;
 
-	strcpy_s(modelFileName, "../Models/cube.txt");
-	
+	//strcpy_s(modelFileName, "../Models/cube.txt");
+	strcpy_s(modelFileName, "../Models/AnimMan.FBX");
+
 	strcpy_s(textureFileName, "../Textures/stone01.tga");
 	result = m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), modelFileName, textureFileName);
 	if (!result)

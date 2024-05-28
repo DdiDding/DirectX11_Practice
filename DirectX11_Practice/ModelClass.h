@@ -46,6 +46,7 @@ private:
 	void ReleaseTexture();
 
 	bool LoadModel(char*);
+	bool LoadFBX(char*);
 	void ReleaseModel();
 
 private:

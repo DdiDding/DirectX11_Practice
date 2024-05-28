@@ -17,14 +17,17 @@ bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 	fbx = new FbxTool();
 	fbx->Initialize();
 
-	fbx->Load("../Models/AnimMan.FBX");
+	LoadFBX(modelFilename);
+	//LoadFBX("../Models/AnimMan.FBX");
 
+	/*
 	// Load in the model data
 	result = LoadModel(modelFilename);
 	if (!result)
 	{
 		return false;
 	}
+	*/
 
 	// Initialize the vertex and index buffers.
 	result = InitializeBuffers(device);
@@ -286,6 +289,28 @@ bool ModelClass::LoadModel(char* filename)
 	fin.close();
 
 	return true;
+}
+
+bool ModelClass::LoadFBX(char* fbxFileName)
+{
+	assert(fbx);
+
+	XMFLOAT3** vertexPos = nullptr;
+	int** vertexIdx = nullptr;
+	int vertexCnt = 0;
+
+	if (fbx->Load(fbxFileName, vertexPos, vertexIdx, vertexCnt) == false) return false;
+
+
+	for (int i = 0; i < m_vertexCount; i++)
+	{
+		//m_model[i].x = vertexPos;
+	}
+
+	//for ()
+
+
+	return false;
 }
 
 void ModelClass::ReleaseModel()

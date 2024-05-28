@@ -57,7 +57,7 @@ bool FbxTool::Initialize()
 	return true;
 }
 
-bool FbxTool::Load(const char* fileName)
+bool FbxTool::Load(const char* fileName, XMFLOAT3** vertexPos, int** vertexIdx, int& veretxCnt)
 {
 	bool ret;
 
@@ -77,7 +77,7 @@ bool FbxTool::Load(const char* fileName)
 	ret = FindMesh(m_scene->GetRootNode());
 	if (ret == false) return false;
 
-	SaveVertex();
+	SaveVertexData(vertexPos, vertexIdx, veretxCnt);
 
 	return false;
 }
@@ -111,44 +111,48 @@ bool FbxTool::FindMesh(FbxNode* node)
 	return false;
 }
 
-
-
-bool FbxTool::SaveVertex()
+bool FbxTool::SaveVertexData(XMFLOAT3** vertexPos, int** vertexIdx, int& vertexCnt)
 {
-	int polygonCnt = m_mesh->GetPolygonCount();
-	
 	// 정점의 개수
-	int vertexCnt = m_mesh->GetControlPointsCount();
+	vertexCnt = m_mesh->GetControlPointsCount();
+	XMFLOAT3* vp = new XMFLOAT3[vertexCnt];
 	// 정점의 배열 포인터 얻기
 	FbxVector4* vertices = m_mesh->GetControlPoints();
-	
+
 
 	int indexCnt = m_mesh->GetPolygonVertexCount();
+	int* ip = new int[indexCnt];
 	int* indices = m_mesh->GetPolygonVertices();
 
 	// 정점 위치 구하기 
 	for (int i = 0; i < vertexCnt; ++i)
 	{
-		 //XMFLOAT3 = vertices[i];
+		float x = static_cast<float>(vertices[i][0]);
+		float y = static_cast<float>(vertices[i][1]);
+		float z = static_cast<float>(vertices[i][2]);
+		vp[i] = XMFLOAT3(x, y, z);
 	}
 
+	// 매개변수에 저장
+	vertexPos = &vp;
 
 
 	// 정점 인덱스 구하기
 	// 삼각형 개수 만큼 반복
+	int polygonCnt = m_mesh->GetPolygonCount();
 	for (int i = 0; i < polygonCnt; ++i)
 	{ 
 
 		// 삼각형의 세 점 
 		for (int j = 0; j < 3; ++j)
 		{
-			int vertexIndex = m_mesh->GetPolygonVertex(i, j);
-			std::cout << "Polygon " << i << " Vertex " << j << ": " << vertexIndex << std::endl;
+			ip[(i * 3) + j] = m_mesh->GetPolygonVertex(i, j);
 		}
 	}
 
+	vertexIdx = &ip;
 
-	return false;
+	return true;
 }
 
 bool FbxTool::LoadNode(FbxNode* node)

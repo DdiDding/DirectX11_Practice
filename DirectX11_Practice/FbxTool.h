@@ -14,12 +14,12 @@ public:
 
 	bool Initialize();
 
-	bool Load(const char* fileName);
+	bool Load(const char* fileName, XMFLOAT3** vertexPos, int** vertexIdx, int& vertexCnt);
 	
 	// 재귀로 메시 노드를 찾아 m_mesh에 저장합니다.
 	bool FindMesh(FbxNode* node);
 
-	bool SaveVertex();
+	bool SaveVertexData(XMFLOAT3** vertexPos, int** vertexIdx, int& vertexCnt);
 
 	bool LoadNode(FbxNode* node);
 
