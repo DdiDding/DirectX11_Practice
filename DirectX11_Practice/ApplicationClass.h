@@ -41,5 +41,5 @@ private:
 	LightClass* m_Light;
 
 	InputClass* m_Input;
-
+	char m_fbxPath[500]{ "" };
 };

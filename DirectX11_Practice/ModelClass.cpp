@@ -19,16 +19,6 @@ bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 	m_fbx->Initialize();
 
 	LoadFBX(modelFilename);
-	//LoadFBX("../Models/AnimMan.FBX");
-
-	/*
-	// Load in the model data
-	result = LoadModel(modelFilename);
-	if (!result)
-	{
-		return false;
-	}
-	*/
 
 	// Initialize the vertex and index buffers.
 	result = InitializeBuffers(device);
@@ -75,6 +65,7 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	///////////////////////////////////////////////////////////////////////////////
 	// Vertex Buffer »ý¼º
 	{
+		if (m_fbx->GetVertexPos() == nullptr) return false;
 		m_vertexCount = _msize(m_fbx->GetVertexPos()) / sizeof(XMFLOAT3);
 		m_vertices = new VertexColor[m_vertexCount];
 
@@ -82,7 +73,7 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
  		for (int i = 0; i < m_vertexCount; i++)
 		{
 			m_vertices[i].position = m_fbx->GetVertexPos()[i];
-			m_vertices[i].color = XMFLOAT4(1, 0, 0, 1);
+			m_vertices[i].color = XMFLOAT4(i * 0.001, 0, 1, 1);
 		}
 
 

@@ -17,6 +17,8 @@ FbxTool::FbxTool()
 {
 	m_manager = nullptr;
 	m_scene = nullptr;
+	m_pos = nullptr;
+	m_idx = nullptr;
 }
 
 bool FbxTool::Initialize()

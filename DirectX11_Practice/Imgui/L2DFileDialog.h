@@ -41,7 +41,9 @@ namespace FileDialog {
 	};
 
 	static bool file_dialog_open = false;
+	static bool file_dialog_choose = false;
 	static FileDialogType file_dialog_open_type = FileDialogType::OpenFile;
+
 
 	void ShowFileDialog(bool* open, char* buffer, [[maybe_unused]] unsigned int buffer_size, FileDialogType type = FileDialogType::OpenFile) {
 		static int file_dialog_file_select_index = 0;
@@ -347,6 +349,7 @@ namespace FileDialog {
 						strcpy_s(buffer, path.length() + 1, path.c_str());
 						strcpy_s(file_dialog_error, "");
 						reset_everything();
+						file_dialog_choose = true;
 					}
 				}
 			}

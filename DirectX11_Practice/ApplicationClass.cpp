@@ -39,18 +39,19 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	{
+		// Setup Dear ImGui context
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-	// Setup Platform/Renderer backends
-	ImGui_ImplWin32_Init(hwnd);
-	ImGui_ImplDX11_Init(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext());
-	ImGui::StyleColorsDark();
-	
+		// Setup Platform/Renderer backends
+		ImGui_ImplWin32_Init(hwnd);
+		ImGui_ImplDX11_Init(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext());
+		ImGui::StyleColorsDark();
+	}
 
 	// Create the camera object.
 	m_Camera = new CameraClass;
@@ -163,6 +164,8 @@ bool ApplicationClass::Frame()
 	static float rotation = 0.0f;
 	bool result;
 
+
+
 	// 회전 값을 프레임마다 업데이트 합니다.
 	rotation += 0.005f;
 	if (360.f < rotation)
@@ -195,51 +198,34 @@ bool ApplicationClass::Render(float rotation)
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 	
+	// Open file browser
 	{
 		// L2DFileDialog code goes here.
 		static char* file_dialog_buffer = new char[500];
-		static char path1[500] = "";
-		static char path2[500] = "";
-		static char path3[500] = "";
+		
 		ImGui::Begin("L2DFileDialog Test");
 		ImGui::Text("Path settings example");
 		ImGui::Separator();
 
-		// Choose a folder
-		ImGui::TextUnformatted("Test Path 1");
-		ImGui::SetNextItemWidth(380);
-		ImGui::InputText("##path1", path1, sizeof(path1));
-		ImGui::SameLine();
-		if (ImGui::Button("Browse##path1")) {
-			file_dialog_buffer = path1;
-			FileDialog::file_dialog_open = true;
-			FileDialog::file_dialog_open_type = FileDialog::FileDialogType::SelectFolder;
-		}
-
-		// Choose a different folder
-		ImGui::TextUnformatted("Test Path 2");
-		ImGui::SetNextItemWidth(380);
-		ImGui::InputText("##path2", path2, sizeof(path2));
-		ImGui::SameLine();
-		if (ImGui::Button("Browse##path2")) {
-			file_dialog_buffer = path2;
-			FileDialog::file_dialog_open = true;
-			FileDialog::file_dialog_open_type = FileDialog::FileDialogType::SelectFolder;
-		}
-
 		// Choose a file
 		ImGui::TextUnformatted("Choose a file");
 		ImGui::SetNextItemWidth(380);
-		ImGui::InputText("##path3", path3, sizeof(path3));
+		ImGui::InputText("##path3", m_fbxPath, sizeof(m_fbxPath));
 		ImGui::SameLine();
+		FileDialog::file_dialog_choose = false;
 		if (ImGui::Button("Browse##path3")) {
-			file_dialog_buffer = path3;
+			file_dialog_buffer = m_fbxPath;
 			FileDialog::file_dialog_open = true;
 			FileDialog::file_dialog_open_type = FileDialog::FileDialogType::OpenFile;
 		}
 
 		if (FileDialog::file_dialog_open) {
 			FileDialog::ShowFileDialog(&FileDialog::file_dialog_open, file_dialog_buffer, sizeof(file_dialog_buffer), FileDialog::file_dialog_open_type);
+		}
+
+		if (FileDialog::file_dialog_choose == true)
+		{
+			m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), m_fbxPath, m_fbxPath);
 		}
 
 		ImGui::End();
