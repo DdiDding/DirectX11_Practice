@@ -1,8 +1,10 @@
 #pragma once
 #include <d3d11.h>
 #include <directxmath.h>
-#include "TextureClass.h"
 #include <fstream>
+#include "TextureClass.h"
+#include "EnumClass.h"
+
 using namespace DirectX;
 using namespace std;
 
@@ -11,12 +13,6 @@ class FbxTool;
 class ModelClass
 {
 private:
-	struct VertexType
-	{
-		XMFLOAT3 position;
-		XMFLOAT2 texture;
-		XMFLOAT3 normal;
-	};
 
 	struct ModelType
 	{
@@ -57,6 +53,8 @@ private:
 
 	TextureClass* m_Texture;
 	ModelType* m_model;
+	VertexType* m_vertices;
+	unsigned int* m_indices;
 
 	FbxTool* fbx;
 };

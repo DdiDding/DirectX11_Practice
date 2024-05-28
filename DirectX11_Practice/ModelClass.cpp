@@ -223,18 +223,7 @@ bool ModelClass::LoadTexture(ID3D11Device* device, ID3D11DeviceContext* deviceCo
 	return true;
 }
 
-void ModelClass::ReleaseTexture()
-{
-	// Release the texture object.
-	if (m_Texture)
-	{
-		m_Texture->Shutdown();
-		delete m_Texture;
-		m_Texture = nullptr;
-	}
 
-	return;
-}
 
 bool ModelClass::LoadModel(char* filename)
 {
@@ -297,18 +286,9 @@ bool ModelClass::LoadFBX(char* fbxFileName)
 
 	XMFLOAT3** vertexPos = nullptr;
 	int** vertexIdx = nullptr;
-	int vertexCnt = 0;
+	m_vertexCount = 0;
 
-	if (fbx->Load(fbxFileName, vertexPos, vertexIdx, vertexCnt) == false) return false;
-
-
-	for (int i = 0; i < m_vertexCount; i++)
-	{
-		//m_model[i].x = vertexPos;
-	}
-
-	//for ()
-
+	if (fbx->Load(fbxFileName, &m_vertices, &m_indices) == false) return false;
 
 	return false;
 }
@@ -319,6 +299,19 @@ void ModelClass::ReleaseModel()
 	{
 		delete[] m_model;
 		m_model = 0;
+	}
+
+	return;
+}
+
+void ModelClass::ReleaseTexture()
+{
+	// Release the texture object.
+	if (m_Texture)
+	{
+		m_Texture->Shutdown();
+		delete m_Texture;
+		m_Texture = nullptr;
 	}
 
 	return;

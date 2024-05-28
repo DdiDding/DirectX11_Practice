@@ -57,7 +57,7 @@ bool FbxTool::Initialize()
 	return true;
 }
 
-bool FbxTool::Load(const char* fileName, XMFLOAT3** vertexPos, int** vertexIdx, int& veretxCnt)
+bool FbxTool::Load(const char* fileName, VertexType** vertices, unsigned int** indices)
 {
 	bool ret;
 
@@ -77,7 +77,7 @@ bool FbxTool::Load(const char* fileName, XMFLOAT3** vertexPos, int** vertexIdx, 
 	ret = FindMesh(m_scene->GetRootNode());
 	if (ret == false) return false;
 
-	SaveVertexData(vertexPos, vertexIdx, veretxCnt);
+	SaveVertexData(vertices, indices);
 
 	return false;
 }
@@ -111,57 +111,42 @@ bool FbxTool::FindMesh(FbxNode* node)
 	return false;
 }
 
-bool FbxTool::SaveVertexData(XMFLOAT3** vertexPos, int** vertexIdx, int& vertexCnt)
+bool FbxTool::SaveVertexData(VertexType** vertices, unsigned int** indices)
 {
 	// 정점의 개수
-	vertexCnt = m_mesh->GetControlPointsCount();
-	XMFLOAT3* vp = new XMFLOAT3[vertexCnt];
+	int vertexCnt = m_mesh->GetControlPointsCount();
+	// 정점 데이터 생성
+	*vertices = new VertexType[vertexCnt];
 	// 정점의 배열 포인터 얻기
-	FbxVector4* vertices = m_mesh->GetControlPoints();
+	FbxVector4* position = m_mesh->GetControlPoints();
 
-
-	int indexCnt = m_mesh->GetPolygonVertexCount();
-	int* ip = new int[indexCnt];
-	int* indices = m_mesh->GetPolygonVertices();
-
-	// 정점 위치 구하기 
+	// 정점 위치 구하여 저장
 	for (int i = 0; i < vertexCnt; ++i)
 	{
-		float x = static_cast<float>(vertices[i][0]);
-		float y = static_cast<float>(vertices[i][1]);
-		float z = static_cast<float>(vertices[i][2]);
-		vp[i] = XMFLOAT3(x, y, z);
+		float x = static_cast<float>(position[i][0]);
+		float y = static_cast<float>(position[i][1]);
+		float z = static_cast<float>(position[i][2]);
+		(*vertices)[i].position = XMFLOAT3(x, y, z);
 	}
 
-	// 매개변수에 저장
-	vertexPos = &vp;
+	// 인덱스 개수
+	int indexCnt = m_mesh->GetPolygonVertexCount() * 3;
+	*indices = new unsigned int[indexCnt];
 
-
-	// 정점 인덱스 구하기
-	// 삼각형 개수 만큼 반복
+	// 정점 인덱스 구하기 , // 삼각형 개수 만큼 반복
 	int polygonCnt = m_mesh->GetPolygonCount();
 	for (int i = 0; i < polygonCnt; ++i)
 	{ 
-
 		// 삼각형의 세 점 
 		for (int j = 0; j < 3; ++j)
 		{
-			ip[(i * 3) + j] = m_mesh->GetPolygonVertex(i, j);
+			(*indices)[(i*3) + j] = m_mesh->GetPolygonVertex(i, j);
 		}
 	}
-
-	vertexIdx = &ip;
 
 	return true;
 }
 
-bool FbxTool::LoadNode(FbxNode* node)
-{
-	FbxMesh* mesh = node->GetMesh();
-	std::cout << mesh->GetName();
-
-	return false;
-}
 
 void FbxTool::Shotdown()
 {
