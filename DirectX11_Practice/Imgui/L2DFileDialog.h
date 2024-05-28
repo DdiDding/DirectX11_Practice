@@ -13,19 +13,20 @@
    	See the License for the specific language governing permissions and
    	limitations under the License.
 */
-
 #pragma once
-
 
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <chrono>
 #include <string>
 #include <time.h>
+#include <vector>
 #include <filesystem>
+#include <iostream>
 #include <sstream>
 
 using namespace std::chrono_literals;
+using namespace std;
 
 namespace FileDialog {
 
@@ -107,7 +108,7 @@ namespace FileDialog {
 				}
 			}
 			for (int i = 0; i < folders.size(); ++i) {
-				if (ImGui::Selectable(folders[i].path().stem().string().c_str(), i == file_dialog_folder_select_index, ImGuiSelectableFlags_AllowDoubleClick, ImVec2(ImGui::GetWindowContentRegionWidth(), 0))) {
+				if (ImGui::Selectable(folders[i].path().stem().string().c_str(), i == file_dialog_folder_select_index, ImGuiSelectableFlags_AllowDoubleClick, ImVec2(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x, 0))) {
 					file_dialog_current_file = "";
 					if (ImGui::IsMouseDoubleClicked(0)) {
 						file_dialog_current_path = folders[i].path().string();
@@ -216,7 +217,7 @@ namespace FileDialog {
 			}
 
 			for (int i = 0; i < files.size(); ++i) {
-				if (ImGui::Selectable(files[i].path().filename().string().c_str(), i == file_dialog_file_select_index, ImGuiSelectableFlags_AllowDoubleClick, ImVec2(ImGui::GetWindowContentRegionWidth(), 0))) {
+				if (ImGui::Selectable(files[i].path().filename().string().c_str(), i == file_dialog_file_select_index, ImGuiSelectableFlags_AllowDoubleClick, ImVec2(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x, 0))) {
 					file_dialog_file_select_index = i;
 					file_dialog_current_file = files[i].path().filename().string();
 					file_dialog_current_folder = "";

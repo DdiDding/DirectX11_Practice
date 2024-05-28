@@ -6,6 +6,7 @@
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+#include "L2DFileDialog.h"
 
 ApplicationClass::ApplicationClass()
 {
@@ -194,34 +195,56 @@ bool ApplicationClass::Render(float rotation)
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 	
-	bool openFile = false;
-	ImGui::Begin("File Selection");
-	if (ImGui::Button("Open File") == true)
 	{
-		openFile = true;
-	}
-	ImGui::End();
+		// L2DFileDialog code goes here.
+		static char* file_dialog_buffer = new char[500];
+		static char path1[500] = "";
+		static char path2[500] = "";
+		static char path3[500] = "";
+		ImGui::Begin("L2DFileDialog Test");
+		ImGui::Text("Path settings example");
+		ImGui::Separator();
 
-	cout << openFile << endl;
-
-	if (openFile == true)
-	{
-		ImGui::OpenPopup("File Browser");
-	}
-	if (ImGui::BeginPopupModal("File Browser", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-		// 여기에서 파일 대화 상자를 ImGui로 구현할 수 있습니다.
-		ImGui::Text("Select a file or cancel:");
-		if (ImGui::Button("OK")) {
-			// 사용자가 "OK"를 클릭하여 파일을 선택하면 콜백 함수 호출하여 선택한 파일의 경로를 설정합니다.
-			// 여기서는 콘솔에 출력하는 예시로 대체합니다.
-			ImGui::CloseCurrentPopup();
-		}
+		// Choose a folder
+		ImGui::TextUnformatted("Test Path 1");
+		ImGui::SetNextItemWidth(380);
+		ImGui::InputText("##path1", path1, sizeof(path1));
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel")) {
-			ImGui::CloseCurrentPopup();
+		if (ImGui::Button("Browse##path1")) {
+			file_dialog_buffer = path1;
+			FileDialog::file_dialog_open = true;
+			FileDialog::file_dialog_open_type = FileDialog::FileDialogType::SelectFolder;
 		}
-		ImGui::EndPopup();
+
+		// Choose a different folder
+		ImGui::TextUnformatted("Test Path 2");
+		ImGui::SetNextItemWidth(380);
+		ImGui::InputText("##path2", path2, sizeof(path2));
+		ImGui::SameLine();
+		if (ImGui::Button("Browse##path2")) {
+			file_dialog_buffer = path2;
+			FileDialog::file_dialog_open = true;
+			FileDialog::file_dialog_open_type = FileDialog::FileDialogType::SelectFolder;
+		}
+
+		// Choose a file
+		ImGui::TextUnformatted("Choose a file");
+		ImGui::SetNextItemWidth(380);
+		ImGui::InputText("##path3", path3, sizeof(path3));
+		ImGui::SameLine();
+		if (ImGui::Button("Browse##path3")) {
+			file_dialog_buffer = path3;
+			FileDialog::file_dialog_open = true;
+			FileDialog::file_dialog_open_type = FileDialog::FileDialogType::OpenFile;
+		}
+
+		if (FileDialog::file_dialog_open) {
+			FileDialog::ShowFileDialog(&FileDialog::file_dialog_open, file_dialog_buffer, sizeof(file_dialog_buffer), FileDialog::file_dialog_open_type);
+		}
+
+		ImGui::End();
 	}
+
 
 	
 	// 카메라 위치를 기반으로 뷰 행렬 생성
