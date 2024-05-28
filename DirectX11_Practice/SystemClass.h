@@ -12,7 +12,7 @@ class SystemClass
 {
 public:
 	SystemClass();
-	SystemClass(const SystemClass&);
+	SystemClass(const SystemClass&) = default;
 	// 소멸자가 호출되지 않을 수도 있는 경우가 있기 때문에 소멸 작업은 Shutdown함수에 구현.
 	// 그래서 기본 소멸자에 아무것도 없으므로 default 사용
 	~SystemClass() = default;

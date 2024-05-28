@@ -57,7 +57,5 @@ private:
 	VertexColor* m_vertices;
 	unsigned int* m_indices;
 
-	
-
 	FbxTool* m_fbx;
 };

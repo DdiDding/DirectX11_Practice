@@ -41,7 +41,7 @@ bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	m_Camera = new CameraClass;
 
 	// Set the initial position of the camera.
-	m_Camera->SetPosition(0.0f, 0.0f, -500.0f);
+	m_Camera->SetPosition(0.0f, 90.0f, -500.0f);
 
 	/////////////////////////////////////////////////////////
 	// 모델 초기화
@@ -149,7 +149,7 @@ bool ApplicationClass::Frame()
 	bool result;
 
 	// 회전 값을 프레임마다 업데이트 합니다.
-	//rotation += 0.005f;
+	rotation += 0.005f;
 	if (360.f < rotation)
 	{
 		rotation = 0.0f;
@@ -183,7 +183,7 @@ bool ApplicationClass::Render(float rotation)
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 
-	worldMatrix *= XMMatrixRotationRollPitchYaw(rotation, rotation, rotation);
+	worldMatrix *= XMMatrixRotationRollPitchYaw(0, rotation, 0);
 
 	// 렌더링 파이프라인에 모델의 정점, 인덱스 버퍼를 배치하여 그릴 준비를 합니다.
 	m_Model->Render(m_Direct3D->GetDeviceContext());

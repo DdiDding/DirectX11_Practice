@@ -32,7 +32,7 @@ bool FbxTool::Initialize()
 	// 가져올 씬의 요소(camera, light, mesh, texture, ...) 세팅
 	FbxIOSettings* ios = FbxIOSettings::Create(m_manager, IOSROOT);
 	m_manager->SetIOSettings(ios);
-
+	
 	// 가져올 데이터의 종류 결정
 	/*(*(m_manager->GetIOSettings())).SetBoolProp(IMP_FBX_MATERIAL, false);
 	(*(m_manager->GetIOSettings())).SetBoolProp(IMP_FBX_TEXTURE, false);
@@ -42,9 +42,6 @@ bool FbxTool::Initialize()
 	(*(m_manager->GetIOSettings())).SetBoolProp(IMP_FBX_ANIMATION, false);
 	(*(m_manager->GetIOSettings())).SetBoolProp(IMP_FBX_GLOBAL_SETTINGS, false);*/
 
-
-	m_importer = FbxImporter::Create(m_manager, "");
-
 	// 씬 생성
 	m_scene = FbxScene::Create(m_manager, "My Scene");
 	if (!m_scene)
@@ -52,6 +49,9 @@ bool FbxTool::Initialize()
 		std::cout << "Error : Unable to create FBX scene\n";
 		return false;
 	}
+
+	m_importer = FbxImporter::Create(m_manager, "");
+
 
 	return true;
 }
@@ -73,7 +73,7 @@ bool FbxTool::Load(const char* fileName)
 	m_importer->Destroy();
 
 	// 좌표축 가져오기
-	FbxAxisSystem axisSytstem = m_scene->GetGlobalSettings().GetAxisSystem();
+	//FbxAxisSystem axisSytstem = m_scene->GetGlobalSettings().GetAxisSystem();
 	// 씬 내의 좌표축 바꾸기
 	//FbxAxisSystem::DirectX.ConvertScene(m_scene);
 	//FbxAxisSystem::MayaYUp.ConvertScene(m_scene);
@@ -89,7 +89,7 @@ bool FbxTool::Load(const char* fileName)
 	// 3. 메시의 정점 데이터(위치, 인덱스) 저장
 	SaveVertexData();
 
-	return false;
+	return true;
 }
 
 

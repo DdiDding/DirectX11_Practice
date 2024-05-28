@@ -1,14 +1,11 @@
 #include "SystemClass.h"
 
+
 SystemClass::SystemClass()
 {
 	// 우리가 만든 클래스의 개체
 	m_Input = nullptr;
 	m_Application = nullptr;
-}
-
-SystemClass::SystemClass(const SystemClass & other)
-{
 }
 
 bool SystemClass::Initialize()
@@ -33,6 +30,9 @@ bool SystemClass::Initialize()
 	{
 		return false;
 	}
+
+	
+
 	return true;
 }
 
