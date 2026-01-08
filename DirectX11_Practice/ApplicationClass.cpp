@@ -2,10 +2,13 @@
 
 ApplicationClass::ApplicationClass()
 {
+	m_Direct3D = nullptr;
 }
 
 bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
+	
+
 	return true;
 }
 
