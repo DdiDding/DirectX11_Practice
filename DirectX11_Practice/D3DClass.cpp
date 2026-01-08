@@ -23,15 +23,11 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	unsigned int i;
 	int error;
 	
-	D3D11_TEXTURE2D_DESC depthBufferDesc;
-	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
-	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
-	D3D11_RASTERIZER_DESC rasterDesc;
+		D3D11_RASTERIZER_DESC rasterDesc;
 	float fieldOfView, screenAspect;
 
 	// vsync 설정을 저장합니다. 
 	m_vsync_enabled = vsync;
-
 
 	// 1. DirectX graphics interface factory 생성 & DXGI 인터페이스 생성
 	IDXGIFactory* factory;
@@ -208,24 +204,33 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	}
 	
 	
-
-	// Initialize the description of the depth buffer.
+	// 7. Depth Stencil Buffer 생성
+	// 버퍼는 TEXTURE2D형태로 접근할 수 있다.
+	D3D11_TEXTURE2D_DESC depthBufferDesc;
 	ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
+	{
 
-	// Set up the description of the depth buffer.
+	}
+
+	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+
 	depthBufferDesc.Width = screenWidth;
 	depthBufferDesc.Height = screenHeight;
 	depthBufferDesc.MipLevels = 1;
 	depthBufferDesc.ArraySize = 1;
+	// // 32bit중 24bit는 Depth buffer로, 8bit는 Stencil buffer로 사용.
 	depthBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	depthBufferDesc.SampleDesc.Count = 1;
 	depthBufferDesc.SampleDesc.Quality = 0;
 	depthBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	// 사용 용도는 Depth stencil
 	depthBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	depthBufferDesc.CPUAccessFlags = 0;
 	depthBufferDesc.MiscFlags = 0;
 
 
+	// depthBufferDesc를 이용해 
 	// Create the texture for the depth buffer using the filled out description.
 	result = m_device->CreateTexture2D(&depthBufferDesc, NULL, &m_depthStencilBuffer);
 	if (FAILED(result))
