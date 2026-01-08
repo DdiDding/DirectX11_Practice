@@ -21,12 +21,8 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	HRESULT result;
 	
 	unsigned int i;
-	
-	
 	int error;
-	DXGI_SWAP_CHAIN_DESC swapChainDesc;
-	D3D_FEATURE_LEVEL featureLevel;
-	ID3D11Texture2D* backBufferPtr;
+	
 	D3D11_TEXTURE2D_DESC depthBufferDesc;
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
@@ -36,7 +32,6 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	// vsync 설정을 저장합니다. 
 	m_vsync_enabled = vsync;
 
-	/* 초기화 하기 전에 장치의 주사율를 쿼리해 가져와야 한다.*/
 
 	// 1. DirectX graphics interface factory 생성 & DXGI 인터페이스 생성
 	IDXGIFactory* factory;
@@ -59,7 +54,7 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 
 
 	// 2. 주사율 가져오기
-	UINT numModes;
+	UINT numModes = 0;
 	DXGI_MODE_DESC* displayModeList;
 	unsigned int numerator, denominator;
 	{
@@ -108,6 +103,7 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 		if (FAILED(result)) return false;
 	}
 
+
 	// 4.DXGI에서 가져올 정보를 모두 가져왔으니 가져온 자원을 해제한다.
 	{
 		// Release the display mode list.
@@ -128,93 +124,90 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	}
 	
 
-
-	// Initialize the swap chain description.
+	// 5. 스왑체인 생성
+	// swapChainDesc : 스왑체인의 설정값을 포함하는 구조체, 사용하기 전에 0으로 초기화 한다.
+	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
-
-	// Set to a single back buffer.
-	swapChainDesc.BufferCount = 1;
-
-	// Set the width and height of the back buffer.
-	swapChainDesc.BufferDesc.Width = screenWidth;
-	swapChainDesc.BufferDesc.Height = screenHeight;
-
-	// Set regular 32-bit surface for the back buffer.
-	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-
-	// Set the refresh rate of the back buffer.
-	if (m_vsync_enabled)
 	{
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = numerator;
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = denominator;
+		// 5.1 스왑체인의 설정 값 정의
+		
+		// 튜토리얼에선 우선 버퍼 개수를 1개인, 싱글 버퍼링으로 동작시킨다.
+		swapChainDesc.BufferCount = 1;
+
+		// 사용 용도를 백버퍼로 설정
+		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+
+		// 렌더링을 하기 위해, 렌더링할 창의 핸들을 가져온다.
+		swapChainDesc.OutputWindow = hwnd;
+
+		// Turn multisampling off.
+		swapChainDesc.SampleDesc.Count = 1;
+		swapChainDesc.SampleDesc.Quality = 0;
+
+		// 전체화면, 창화면에 대한 설정
+		if (fullscreen) swapChainDesc.Windowed = false;
+		else swapChainDesc.Windowed = true;
+
+		// 버퍼의 교체 방식의 세팅 값인데 지금은 단일 버퍼라 의미 없음.
+		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+
+		// 플래그를 설정하지 않는다 = 일단 중요하지 않다.
+		swapChainDesc.Flags = 0;
+
+		// 버퍼(도화지)의 크기 설정
+		swapChainDesc.BufferDesc.Width = screenWidth;
+		swapChainDesc.BufferDesc.Height = screenHeight;
+		
+		// 버퍼의 픽셀 형식 설정
+		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+		// 버퍼를 위에서부터 차례대로 그릴건지, 짝수 줄부터 그릴건지, ..등에 대한 세팅, 튜토리얼에서는 기본값 사용.
+		swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+
+		// 스케일링에 대한 설명, 튜토리얼에서는 기본값 사용.
+		swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+
+		// 수직 동기화 여부에 따라 주사율을 설정한다.
+		if (m_vsync_enabled)
+		{
+			swapChainDesc.BufferDesc.RefreshRate.Numerator = numerator;
+			swapChainDesc.BufferDesc.RefreshRate.Denominator = denominator;
+		}
+		else 
+		{
+			// 수직 동기화가 아니라면 주사율의 제한을 없앤다.
+			swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
+			swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
+		}
+
+		// 사용할 DirectX의 버전을 정의
+		D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
+
+		// 5.2. 위에서 세팅한 DXGI_SWAP_CHAIN_DESC를 이용해 스왑체인, Direct3D device, Direct3D device context를 생성한다.
+		result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featureLevel, 1,
+			D3D11_SDK_VERSION, &swapChainDesc, &m_swapChain, &m_device, NULL, &m_deviceContext);
+
+		
+		// 5.3. 스왑체인의 0번째 버퍼 포인터를 가져온다.
+		ID3D11Texture2D* backBufferPtr;
+		result = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferPtr);
+		if (FAILED(result)) return false;
+
+
+		// 5.4. 렌더 타겟 뷰를 백버퍼와 연결하면서 생성한다.
+		result = m_device->CreateRenderTargetView(backBufferPtr, NULL, &m_renderTargetView);
+		if (FAILED(result)) return false;
+
+
+		// 5.5. 이제 필요 없는 메모리를 해제한다.
+		backBufferPtr->Release();
+		backBufferPtr = 0;
 	}
-	else
-	{
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-	}
+	
 
-	// Set the usage of the back buffer.
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	
 
-	// Set the handle for the window to render to.
-	swapChainDesc.OutputWindow = hwnd;
-
-	// Turn multisampling off.
-	swapChainDesc.SampleDesc.Count = 1;
-	swapChainDesc.SampleDesc.Quality = 0;
-
-	// Set to full screen or windowed mode.
-	if (fullscreen)
-	{
-		swapChainDesc.Windowed = false;
-	}
-	else
-	{
-		swapChainDesc.Windowed = true;
-	}
-
-	// Set the scan line ordering and scaling to unspecified.
-	swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-	swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-
-	// Discard the back buffer contents after presenting.
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-
-	// Don't set the advanced flags.
-	swapChainDesc.Flags = 0;
-
-	// Set the feature level to DirectX 11.
-	featureLevel = D3D_FEATURE_LEVEL_11_0;
-
-
-	// Create the swap chain, Direct3D device, and Direct3D device context.
-	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featureLevel, 1,
-		D3D11_SDK_VERSION, &swapChainDesc, &m_swapChain, &m_device, NULL, &m_deviceContext);
-	if (FAILED(result))
-	{
-		return false;
-	}
-
-
-	// Get the pointer to the back buffer.
-	result = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferPtr);
-	if (FAILED(result))
-	{
-		return false;
-	}
-
-	// Create the render target view with the back buffer pointer.
-	result = m_device->CreateRenderTargetView(backBufferPtr, NULL, &m_renderTargetView);
-	if (FAILED(result))
-	{
-		return false;
-	}
-
-	// Release pointer to the back buffer as we no longer need it.
-	backBufferPtr->Release();
-	backBufferPtr = 0;
+	
 
 
 	// Initialize the description of the depth buffer.
