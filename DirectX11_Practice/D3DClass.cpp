@@ -130,7 +130,7 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
 	{
 		// 5.1 스왑체인의 설정 값 정의
-		
+
 		// 튜토리얼에선 우선 버퍼 개수를 1개인, 싱글 버퍼링으로 동작시킨다.
 		swapChainDesc.BufferCount = 1;
 
@@ -157,7 +157,7 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 		// 버퍼(도화지)의 크기 설정
 		swapChainDesc.BufferDesc.Width = screenWidth;
 		swapChainDesc.BufferDesc.Height = screenHeight;
-		
+
 		// 버퍼의 픽셀 형식 설정
 		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
@@ -173,7 +173,7 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 			swapChainDesc.BufferDesc.RefreshRate.Numerator = numerator;
 			swapChainDesc.BufferDesc.RefreshRate.Denominator = denominator;
 		}
-		else 
+		else
 		{
 			// 수직 동기화가 아니라면 주사율의 제한을 없앤다.
 			swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
@@ -186,29 +186,28 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 		// 5.2. 위에서 세팅한 DXGI_SWAP_CHAIN_DESC를 이용해 스왑체인, Direct3D device, Direct3D device context를 생성한다.
 		result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featureLevel, 1,
 			D3D11_SDK_VERSION, &swapChainDesc, &m_swapChain, &m_device, NULL, &m_deviceContext);
+	}
 
-		
-		// 5.3. 스왑체인의 0번째 버퍼 포인터를 가져온다.
+	// 6. RenderTargetView 생성
+	{
+		// 6.1. 스왑체인의 0번째 버퍼 포인터를 가져온다.
+		// backBufferPtr : 생성된 버퍼의 포인터
 		ID3D11Texture2D* backBufferPtr;
 		result = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferPtr);
 		if (FAILED(result)) return false;
 
 
-		// 5.4. 렌더 타겟 뷰를 백버퍼와 연결하면서 생성한다.
+		// 6.2. 렌더 타겟 뷰를 백버퍼와 연결하면서 생성한다.
 		result = m_device->CreateRenderTargetView(backBufferPtr, NULL, &m_renderTargetView);
 		if (FAILED(result)) return false;
 
 
-		// 5.5. 이제 필요 없는 메모리를 해제한다.
+		// 6.3. 이제 필요 없는 메모리를 해제한다.
 		backBufferPtr->Release();
 		backBufferPtr = 0;
 	}
 	
-
 	
-
-	
-
 
 	// Initialize the description of the depth buffer.
 	ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
