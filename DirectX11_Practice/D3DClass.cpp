@@ -23,7 +23,7 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	unsigned int i;
 	int error;
 	
-		D3D11_RASTERIZER_DESC rasterDesc;
+	
 	float fieldOfView, screenAspect;
 
 	// vsync 설정을 저장합니다. 
@@ -279,7 +279,8 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	}
 
 	
-	// Setup the raster description which will determine how and what polygons will be drawn.
+	// 폴리곤이 어떻게 그려질지의 속성을 Desc에 채워넣기
+	D3D11_RASTERIZER_DESC rasterDesc;
 	rasterDesc.AntialiasedLineEnable = false;
 	rasterDesc.CullMode = D3D11_CULL_BACK;
 	rasterDesc.DepthBias = 0;
@@ -291,17 +292,15 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	rasterDesc.ScissorEnable = false;
 	rasterDesc.SlopeScaledDepthBias = 0.0f;
 
-	// Create the rasterizer state from the description we just filled out.
+	// Desc를 이용하여 rasterizer state를 생성
 	result = m_device->CreateRasterizerState(&rasterDesc, &m_rasterState);
-	if (FAILED(result))
-	{
-		return false;
-	}
+	if (FAILED(result)) return false;
 
-	// Now set the rasterizer state.
+	// rasterizer state 파이프 라인 RS단계에 지정
 	m_deviceContext->RSSetState(m_rasterState);
 
-	// Setup the viewport for rendering.
+	// Viewport는 다른 그래픽 리소스와 달리 Desc없이 직접 설정한다.
+	// 뷰포트 속성 설정
 	m_viewport.Width = (float)screenWidth;
 	m_viewport.Height = (float)screenHeight;
 	m_viewport.MinDepth = 0.0f;
@@ -309,11 +308,12 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	m_viewport.TopLeftX = 0.0f;
 	m_viewport.TopLeftY = 0.0f;
 
-	// Create the viewport.
+	// viewport를 생성하고 파이프 라인 RS단계에 지정.
 	m_deviceContext->RSSetViewports(1, &m_viewport);
 
 
-	// Setup the projection matrix.
+	// 3D장면을 2D로 변환하는데 사용되는 투영 행렬을 만든다.
+	// 셰이더에 전달하여  씬을 렌더링 할 수 있다.
 	fieldOfView = 3.141592654f / 4.0f;
 	screenAspect = (float)screenWidth / (float)screenHeight;
 
@@ -327,4 +327,63 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	m_orthoMatrix = XMMatrixOrthographicLH((float)screenWidth, (float)screenHeight, screenNear, screenDepth);
 
 	return true;
+}
+
+void D3DClass::Shutdown()
+{
+	// Before shutting down set to windowed mode or when you release the swap chain it will throw an exception.
+	if (m_swapChain)
+	{
+		m_swapChain->SetFullscreenState(false, NULL);
+	}
+
+	if (m_rasterState)
+	{
+		m_rasterState->Release();
+		m_rasterState = 0;
+	}
+
+	if (m_depthStencilView)
+	{
+		m_depthStencilView->Release();
+		m_depthStencilView = 0;
+	}
+
+	if (m_depthStencilState)
+	{
+		m_depthStencilState->Release();
+		m_depthStencilState = 0;
+	}
+
+	if (m_depthStencilBuffer)
+	{
+		m_depthStencilBuffer->Release();
+		m_depthStencilBuffer = 0;
+	}
+
+	if (m_renderTargetView)
+	{
+		m_renderTargetView->Release();
+		m_renderTargetView = 0;
+	}
+
+	if (m_deviceContext)
+	{
+		m_deviceContext->Release();
+		m_deviceContext = 0;
+	}
+
+	if (m_device)
+	{
+		m_device->Release();
+		m_device = 0;
+	}
+
+	if (m_swapChain)
+	{
+		m_swapChain->Release();
+		m_swapChain = 0;
+	}
+
+	return;
 }
