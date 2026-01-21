@@ -2,7 +2,6 @@
 
 SystemClass::SystemClass()
 {
-	// 우리가 만든 클래스의 개체
 	m_Input = nullptr;
 	m_Application = nullptr;
 }
@@ -11,18 +10,18 @@ SystemClass::SystemClass(const SystemClass & other)
 {
 }
 
+// SystemClass::~SystemClass() = default
+
 bool SystemClass::Initialize()
 {
-	int screenWidth, screenHeight;
+	int screenWidth = 0;
+	int screenHeight = 0;
 	bool result;
-
-	screenWidth = 0;
-	screenHeight = 0;
 
 	// windows api 초기화.
 	InitializeWindows(screenWidth, screenHeight);
 
-	// m_Input은 사용자의 키보드 입력을 처리하는데 사용된다.
+	// m_Input(InputClass)은 사용자의 키보드 입력을 처리하는데 사용된다.
 	m_Input = new InputClass;
 	m_Input->Initialize();
 
@@ -61,7 +60,13 @@ void SystemClass::Shutdown()
 }
 
 
-// 애플리케이션의 처리는 Frame 함수에서 수행된다.
+/* @function Run
+ * 앱이 실행되고 종료될때까지 계속 반복하는 루프 함수
+ * 이 루프는 다음과 같이 실행된다.
+ * 1. 윈도우 시스템 메세지 확인 → 있을 경우 메세지 처리
+ * 2. 앱의 루프 처리 (Frame이라는 함수에서 담당하며, 해당 함수 호출 한 번이 1프레임이다.)
+ * 3. 앱의 종료 확인 
+ */
 void SystemClass::Run()
 {
 	MSG msg;
@@ -123,6 +128,9 @@ bool SystemClass::Frame()
 	return true;
 }
 
+/** 
+ * 윈도우 시스템 메세지를 전달하는 곳. 
+ */
 LRESULT CALLBACK SystemClass::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 {
 	switch (umsg)
@@ -150,6 +158,9 @@ LRESULT CALLBACK SystemClass::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam
 	}
 }
 
+/**
+ * 창을 생성하는 코드를 작성하는 함수
+ */
 void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 {
 	WNDCLASSEX wc;
@@ -232,6 +243,10 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 	return;
 }
 
+
+/**
+ * 화면 설정을 원래대로 되돌리고, 해당 앱과 연관된 창과 핸들을 모두 해제한다.
+ */
 void SystemClass::ShutdownWindows()
 {
 	// Show the mouse cursor.

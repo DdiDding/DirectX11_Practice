@@ -1,54 +1,66 @@
 #pragma once
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "d3dcompiler.lib")
 
-// DirectX의 라이브러리를 사용한다.
-// #pragma comment : 해당 lib파일을 링크하라는 명령
-#pragma comment(lib, "d3d11.lib") // 3D그래픽을 그리기 위한 모든 기능 포함
-#pragma comment(lib, "dxgi.lib") // 하드웨어에 대한 정보를 얻는 기능 포함
-#pragma comment(lib, "d3dcompiler.lib") // 셰이더 컴파일 기능 포함
 
-#include <d3d11.h> 
+// DirectX의 기능을 사용하기 위한 including
+#include <d3d11.h>
+#include <dxgi.h>
 #include <directxmath.h>
 using namespace DirectX;
 
+/** class D3DClass
+ *  Direct3D 시스템의 모든 기능을 처리하는 클래스
+ */
 class D3DClass
 {
 public:
-    D3DClass();
-    D3DClass(const D3DClass&) = default;
-    ~D3DClass() = default;
+	D3DClass();
+	D3DClass(const D3DClass&) = default;
+	~D3DClass() = default;
 
-    bool Initialize(int, int, bool, HWND, bool, float, float);
-    void Shutdown();
+	// Direct 3D의 전체 설정을 담당한다.
+	bool Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, bool fullscreen, float screenDepth, float screenNear);
+	void Shutdown();
 
-    void BeginScene(float, float, float, float);
-    void EndScene();
+	// 버퍼를 초기화 하여 기를 준비가 되게끔 한다.
+	void BeginScene(float red, float green, float blue, float alpha);
+	// 모든 그림이 그려지면 스왑체인에 버퍼를 표시하도록 한다.
+	void EndScene();
 
-    ID3D11Device* GetDevice();
-    ID3D11DeviceContext* GetDeviceContext();
+	ID3D11Device* GetDevice();
+	ID3D11DeviceContext* GetDeviceContext();
 
-    void GetProjectionMatrix(XMMATRIX&);
-    void GetWorldMatrix(XMMATRIX&);
-    void GetOrthoMatrix(XMMATRIX&);
+	void GetProjectionMatrix(XMMATRIX&);
+	void GetWorldMatrix(XMMATRIX&);
+	void GetOrthoMatrix(XMMATRIX&);
 
-    void GetVideoCardInfo(char*, int&);
+	void GetVideoCardInfo(char*, int&);
 
-    void SetBackBufferRenderTarget();
-    void ResetViewport();
+	void SetBackBufferRenderTarget();
+	void ResetViewport();
 
 private:
-    bool m_vsync_enabled;
-    int m_videoCardMemory;
-    char m_videoCardDescription[128];
-    IDXGISwapChain* m_swapChain;
-    ID3D11Device* m_device;
-    ID3D11DeviceContext* m_deviceContext;
-    ID3D11RenderTargetView* m_renderTargetView;
-    ID3D11Texture2D* m_depthStencilBuffer;
-    ID3D11DepthStencilState* m_depthStencilState;
-    ID3D11DepthStencilView* m_depthStencilView;
-    ID3D11RasterizerState* m_rasterState;
-    XMMATRIX m_projectionMatrix;
-    XMMATRIX m_worldMatrix;
-    XMMATRIX m_orthoMatrix;
-    D3D11_VIEWPORT m_viewport;
+	bool m_vsync_enabled;
+	int m_videoCardMemory;
+	char m_videoCardDescription[128];
+
+	IDXGISwapChain* m_swapChain;
+
+	ID3D11Device* m_device;
+	ID3D11DeviceContext* m_deviceContext;
+
+	ID3D11RenderTargetView* m_renderTargetView;
+	ID3D11Texture2D* m_depthStencilBuffer;
+	ID3D11DepthStencilState* m_depthStencilState;
+	ID3D11DepthStencilView* m_depthStencilView;
+	ID3D11RasterizerState* m_rasterState;
+
+	D3D11_VIEWPORT m_viewport;
+
+	XMMATRIX m_projectionMatrix;
+	XMMATRIX m_worldMatrix;
+	XMMATRIX m_orthoMatrix;
 };
+
