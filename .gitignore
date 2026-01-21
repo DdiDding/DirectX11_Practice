@@ -31,6 +31,10 @@
 *.out
 *.app
 
+# Custom
+*.ipch
+*.pdb
+
 # Folder
 /.vs
 /x64
