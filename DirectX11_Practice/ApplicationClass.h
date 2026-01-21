@@ -1,5 +1,5 @@
 #pragma once
-#include "D3DClass.h";
+#include "D3DClass.h"
 
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = true;

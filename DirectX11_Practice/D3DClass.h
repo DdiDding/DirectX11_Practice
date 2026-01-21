@@ -1,19 +1,23 @@
 #pragma once
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "d3dcompiler.lib")
 
-/* D3DClass
- * Direct3D 시스템의 모든 기능을 처리하는 클래스
- */
 
 // DirectX의 기능을 사용하기 위한 including
 #include <d3d11.h>
+#include <dxgi.h>
 #include <directxmath.h>
 using namespace DirectX;
 
+/** class D3DClass
+ *  Direct3D 시스템의 모든 기능을 처리하는 클래스
+ */
 class D3DClass
 {
 public:
 	D3DClass();
-	D3DClass(const D3DClass&);
+	D3DClass(const D3DClass&) = default;
 	~D3DClass() = default;
 
 	// Direct 3D의 전체 설정을 담당한다.
@@ -41,6 +45,7 @@ private:
 	bool m_vsync_enabled;
 	int m_videoCardMemory;
 	char m_videoCardDescription[128];
+
 	IDXGISwapChain* m_swapChain;
 
 	ID3D11Device* m_device;
