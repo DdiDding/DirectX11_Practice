@@ -20,7 +20,9 @@ public:
 	bool Initialize(int screenWidth, int screenHeight, bool vsync, HWND hwnd, bool fullscreen, float screenDepth, float screenNear);
 	void Shutdown();
 
-	void BeginScene(float, float, float, float);
+	// 버퍼를 초기화 하여 기를 준비가 되게끔 한다.
+	void BeginScene(float red, float green, float blue, float alpha);
+	// 모든 그림이 그려지면 스왑체인에 버퍼를 표시하도록 한다.
 	void EndScene();
 
 	ID3D11Device* GetDevice();
