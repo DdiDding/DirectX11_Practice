@@ -16,11 +16,11 @@ bool ColorShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 	int error;
 
 	// 각 셰이더의 경로를 설정한다.
-	error = wcscpy_s(vsFilename, 128, L"../Shaders/colorVS.hlsl");
+	error = wcscpy_s(vsFilename, 128, L"../Shaders/ColorVS.hlsl");
 	if (error != 0) return false;
 
 
-	error = wcscpy_s(psFilename, 128, L"../Engine/colorPS.hlsl");
+	error = wcscpy_s(psFilename, 128, L"../Shaders/ColorPS.hlsl");
 	if (error != 0) return false;
 
 	// 각 셰이더 초기화
@@ -62,7 +62,7 @@ bool ColorShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	// VS 셰이더 컴파일
 	ID3D10Blob* vertexShaderBuffer = nullptr;
 	{
-		result = D3DCompileFromFile(vsFilename, NULL, NULL, "ColorVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+		result = D3DCompileFromFile(vsFilename, NULL, NULL, "main", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
 			&vertexShaderBuffer, &errorMessage);
 
 		if (FAILED(result))
@@ -85,7 +85,7 @@ bool ColorShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	// PS 셰이더 컴파일
 	ID3D10Blob* pixelShaderBuffer = nullptr;
 	{
-		result = D3DCompileFromFile(psFilename, NULL, NULL, "ColorPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+		result = D3DCompileFromFile(psFilename, NULL, NULL, "main", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
 			&pixelShaderBuffer, &errorMessage);
 		if (FAILED(result))
 		{
@@ -270,7 +270,6 @@ bool ColorShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(m_matrixBuffer, 0);
-    return false;
 
 	// Set the position of the constant buffer in the vertex shader.
 	bufferNumber = 0;

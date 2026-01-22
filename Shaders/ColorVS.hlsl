@@ -10,7 +10,7 @@ cbuffer MatrixBuffer
 {
     matrix worldMatrix;
     matrix viewMatrix;
-    matrix projectionMatix;
+    matrix projectionMatrix;
 };
 
 /********************************************************/
@@ -36,16 +36,17 @@ struct PixelInputType
 /********************************************************/
 PixelInputType main(VertexInputType input)
 {
-    input.position.w = 1.0f;
-    
     PixelInputType output;
-    // 색상은 들어온 색상 그대로 복사한다.
-    output.color = input.color;
     
     // 공간 변환
+    input.position.w = 1.0f;
+    
     output.position = mul(input.position, worldMatrix);
     output.position = mul(output.position, viewMatrix);
-    output.position = mul(output.position, projectionMatix);
+    output.position = mul(output.position, projectionMatrix);
+    
+    // 색상은 들어온 색상 그대로 복사한다.
+    output.color = input.color;
     
     return output;
 }

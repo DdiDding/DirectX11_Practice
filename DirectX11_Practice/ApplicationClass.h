@@ -1,5 +1,8 @@
 #pragma once
 #include "D3DClass.h"
+#include "CameraClass.h"
+#include "ModelClass.h"
+#include "ColorShaderClass.h"
 
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = true;
@@ -24,4 +27,7 @@ private:
 	bool Render();
 private:
 	D3DClass* m_Direct3D;
+	CameraClass* m_Camera;
+	ModelClass* m_Model;
+	ColorShaderClass* m_ColorShader;
 };
