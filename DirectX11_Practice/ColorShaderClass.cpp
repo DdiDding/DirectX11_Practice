@@ -19,7 +19,6 @@ bool ColorShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 	error = wcscpy_s(vsFilename, 128, L"../Shaders/ColorVS.hlsl");
 	if (error != 0) return false;
 
-
 	error = wcscpy_s(psFilename, 128, L"../Shaders/ColorPS.hlsl");
 	if (error != 0) return false;
 
@@ -35,7 +34,6 @@ void ColorShaderClass::Shutdown()
 	ShutdownShader();
 	return;
 }
-
 
 bool ColorShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix,
 	XMMATRIX projectionMatrix)
@@ -62,6 +60,7 @@ bool ColorShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	// VS 셰이더 컴파일
 	ID3D10Blob* vertexShaderBuffer = nullptr;
 	{
+		// 정점 셰이더 코드를 컴파일 합니다.
 		result = D3DCompileFromFile(vsFilename, NULL, NULL, "main", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
 			&vertexShaderBuffer, &errorMessage);
 
@@ -82,7 +81,7 @@ bool ColorShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 		}
 	}
 	
-	// PS 셰이더 컴파일
+	// 픽셀 셰이더 코드를 컴파일 합니다.
 	ID3D10Blob* pixelShaderBuffer = nullptr;
 	{
 		result = D3DCompileFromFile(psFilename, NULL, NULL, "main", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
@@ -157,9 +156,14 @@ bool ColorShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* 
 	// 상수버퍼 설정
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	{
+		// 정점 셰이더에 있는 상수 버퍼(cbuffer)의 설명을 설정합니다.
+		//상수 버퍼의 사용 방식을 지정합니다. 여기서는 매 프레임마다 업데이트되므로 D3D11_USAGE_DYNAMIC을 사용합니다.
 		matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+		// ByteWidth는 상수 버퍼의 크기를 바이트 단위로 지정합니다. 이 경우에는 MatrixBufferType 구조체의 크기를 사용합니다.
 		matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
+		// BindFlags는 버퍼가 어떤 유형의 버퍼가 될지 지정합니다. 여기서는 상수 버퍼로 사용하므로 D3D11_BIND_CONSTANT_BUFFER를 사용합니다.
 		matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		// CPUAccessFlags는 Usage와 맟춰 사용해야하기에 여기서 D3D11_CPU_ACCESS_WRITE를 사용합니다.
 		matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		matrixBufferDesc.MiscFlags = 0;
 		matrixBufferDesc.StructureByteStride = 0;
@@ -244,24 +248,19 @@ bool ColorShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 	XMMATRIX projectionMatrix)
 {
 	HRESULT result;
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	MatrixBufferType* dataPtr;
-	unsigned int bufferNumber;
-
+	
 	// Transpose the matrices to prepare them for the shader.
 	worldMatrix = XMMatrixTranspose(worldMatrix);
 	viewMatrix = XMMatrixTranspose(viewMatrix);
 	projectionMatrix = XMMatrixTranspose(projectionMatrix);
 
 	// Lock the constant buffer so it can be written to.
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	result = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	if (FAILED(result))
-	{
-		return false;
-	}
+	if (FAILED(result)) return false;
 
 	// Get a pointer to the data in the constant buffer.
-	dataPtr = (MatrixBufferType*)mappedResource.pData;
+	MatrixBufferType* dataPtr = (MatrixBufferType*)mappedResource.pData;
 
 	// Copy the matrices into the constant buffer.
 	dataPtr->world = worldMatrix;
@@ -272,7 +271,7 @@ bool ColorShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, X
 	deviceContext->Unmap(m_matrixBuffer, 0);
 
 	// Set the position of the constant buffer in the vertex shader.
-	bufferNumber = 0;
+	unsigned int bufferNumber = 0;
 
 	// Finanly set the constant buffer in the vertex shader with the updated values.
 	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_matrixBuffer);
