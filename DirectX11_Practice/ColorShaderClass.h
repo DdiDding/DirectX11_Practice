@@ -39,10 +39,12 @@ public:
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
-	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
-
-	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX);
-	void RenderShader(ID3D11DeviceContext*, int);
+	void OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename);
+	// 셰이더에서 전역변수를 설정하기 위한 함수, 행렬은 ApplicationClass에서 생성된다.
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix,
+		XMMATRIX projectionMatrix);
+	// 
+	void RenderShader(ID3D11DeviceContext* deviceContext, int indexCount);
 
 private:
 	ID3D11VertexShader* m_vertexShader;
