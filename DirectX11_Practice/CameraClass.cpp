@@ -39,43 +39,44 @@ XMFLOAT3 CameraClass::GetRotation()
 
 void CameraClass::Render()
 {
+	//카메라 기본 방향 벡터들을 정의합니다.
 	XMFLOAT3 up, position, lookAt;
-
-	// Setup the vector that points upwards.
-	up.x = 0.0f;
-	up.y = 1.0f;
-	up.z = 0.0f;
-
 	// Load it into a XMVECTOR structure.
 	XMVECTOR upVector, positionVector, lookAtVector;
-	upVector = XMLoadFloat3(&up);
+	{
+		// 위를 바라보는 벡터 up을 정의합니다.
+		up.x = 0.0f;
+		up.y = 1.0f;
+		up.z = 0.0f;
+		upVector = XMLoadFloat3(&up);
 
-	// Setup the position of the camera in the world.
-	position.x = m_positionX;
-	position.y = m_positionY;
-	position.z = m_positionZ;
+		// 카메라의 위치를 position을 정의합니다.
+		position.x = m_positionX;
+		position.y = m_positionY;
+		position.z = m_positionZ;
+		positionVector = XMLoadFloat3(&position);
 
-	// Load it into a XMVECTOR structure.
-	positionVector = XMLoadFloat3(&position);
+		// 카메라가 바라보는 방향 lookAt을 정의합니다.
+		lookAt.x = 0.0f;
+		lookAt.y = 0.0f;
+		lookAt.z = 1.0f;
+		lookAtVector = XMLoadFloat3(&lookAt);
+	}
 
-	// Setup where the camera is looking by default.
-	lookAt.x = 0.0f;
-	lookAt.y = 0.0f;
-	lookAt.z = 1.0f;
-	// Load it into a XMVECTOR structure.
-	lookAtVector = XMLoadFloat3(&lookAt);
-
-	float yaw, pitch, roll;
+	// 회전 행렬 생성
 	XMMATRIX rotationMatrix;
-	// Set the yaw (Y axis), pitch (X axis), and roll (Z axis) rotations in radians.
-	pitch = m_rotationX * 0.0174532925f;
-	yaw = m_rotationY * 0.0174532925f;
-	roll = m_rotationZ * 0.0174532925f;
+	{
+		float yaw, pitch, roll;
+		// 각도를 degree에서 radian으로 단위 변경
+		pitch = m_rotationX * 0.0174532925f;
+		yaw = m_rotationY * 0.0174532925f;
+		roll = m_rotationZ * 0.0174532925f;
 
-	// Create the rotation matrix from the yaw, pitch, and roll values.
-	rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
+		// XMMatrixRotationRollPitchYaw로 회전 행렬 생성
+		rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
+	}
 
-	// Transform the lookAt and up vector by the rotation matrix so the view is correctly rotated at the origin.
+	// 회전 행렬을 이용하여 각 벡터 회전 적용
 	lookAtVector = XMVector3TransformCoord(lookAtVector, rotationMatrix);
 	upVector = XMVector3TransformCoord(upVector, rotationMatrix);
 

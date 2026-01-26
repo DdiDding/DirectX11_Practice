@@ -18,5 +18,5 @@ struct PixelInputType
 // 최종 색상 결과를 출력하기 때문에 float4를 반환한다(R,G,B,A)
 float4 main(PixelInputType input) : SV_TARGET
 {
-	return input.color;
+	return input.color * 0.2f;
 }
