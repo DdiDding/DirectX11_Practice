@@ -1,8 +1,8 @@
 #pragma once
+// Lingking
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
-
 
 // DirectX의 기능을 사용하기 위한 including
 #include <d3d11.h>

@@ -2,60 +2,42 @@
 
 ModelClass::ModelClass()
 {
-	m_vertexBuffer = nullptr;
-	m_indexBuffer = nullptr;
-	m_Texture = nullptr;
+    m_vertexBuffer = nullptr;
+    m_indexBuffer = nullptr;
 }
 
-bool ModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* textureFilename)
+bool ModelClass::Initialize(ID3D11Device* device)
 {
 	bool result;
 
 	// Initialize the vertex and index buffers.
 	result = InitializeBuffers(device);
-	if (!result)
-	{
-		return false;
-	}
-
-	// Load the texture for this model.
-	result = LoadTexture(device, deviceContext, textureFilename);
-	if (!result)
-	{
-		return false;
-	}
+	if (!result) return false;
 
 	return true;
 }
 
 void ModelClass::Shutdown()
 {
-	ReleaseTexture();
-
 	// Shutdown the vertex and index buffers.
 	ShutdownBuffers();
 
 	return;
 }
 
+
+//렌더링은 ApplicationClass::Render 함수에서 호출됩니다.이 함수는 RenderBuffers를 호출하여 정점 버퍼와 인덱스 버퍼를 그래픽스 파이프라인에 배치하므로, 컬러 셰이더가 이를 렌더링할 수 있게 됩니다.
 void ModelClass::Render(ID3D11DeviceContext* deviceContext)
 {
-	// vertex and index buffers를 렌더링 파이프 라인에 배치합니다.
+	// Put the vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	RenderBuffers(deviceContext);
 
 	return;
 }
 
-
 int ModelClass::GetIndexCount()
 {
-	return m_indexCount;
-}
-
-// 모델을 렌더링하려면 텍스쳐 셰이더가 이 텍스쳐에 액세스 해야합니다.
-ID3D11ShaderResourceView* ModelClass::GetTexture()
-{
-	return m_Texture->GetTexture();
+    return m_indexCount;
 }
 
 bool ModelClass::InitializeBuffers(ID3D11Device* device)
@@ -66,104 +48,76 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
 
-	///////////////////////////////////////////////////////////////////////////////
-	// Vertex Buffer 생성
-	{
-		m_vertexCount = 4;
-		// Create the vertex array.
-		vertices = new VertexType[m_vertexCount];
-		if (!vertices)
-		{
-			return false;
-		}
+	// 먼저 나중에 최종 버퍼를 채우는 데 사용할 정점 및 인덱스 데이터를 저장할 두 개의 임시 배열을 생성합니다.
+	// Set the number of vertices in the vertex array.
+	m_vertexCount = 3;
 
-		// Load the vertex array with data. (x, y, z)
-		vertices[0].position = XMFLOAT3(-1.0f, 1.0f, 0.0f);  // Top left.
-		vertices[0].texture = XMFLOAT2(0.0f, 0.0f);
-		vertices[0].normal = XMFLOAT3(0.0f, 0.0f,-1.0f); // 법선 벡터 추가
+	// Set the number of indices in the index array.
+	m_indexCount = 3;
 
-		vertices[1].position = XMFLOAT3(1.0f, 1.0f, 0.0f);  // Top right
-		vertices[1].texture = XMFLOAT2(1.0f, 0.0f);
-		vertices[1].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
+	// Create the vertex array.
+	vertices = new VertexType[m_vertexCount];
+	if (!vertices) return false;
 
-		vertices[2].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
-		vertices[2].texture = XMFLOAT2(0.0f, 1.0f);
-		vertices[2].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
+	// Create the index array.
+	indices = new unsigned long[m_indexCount];
+	if (!indices) return false;
 
+	// Load the vertex array with data.
+	vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
+	vertices[0].color = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
 
-		vertices[3].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
-		vertices[3].texture = XMFLOAT2(1.0f, 1.0f);
-		vertices[3].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
+	vertices[1].position = XMFLOAT3(0.0f, 1.0f, 0.0f);  // Top middle.
+	vertices[1].color = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
 
-		// Set up the description of the static vertex buffer.
-		vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		vertexBufferDesc.ByteWidth = sizeof(VertexType) * m_vertexCount;
-		vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		vertexBufferDesc.CPUAccessFlags = 0;
-		vertexBufferDesc.MiscFlags = 0;
-		vertexBufferDesc.StructureByteStride = 0;
+	vertices[2].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
+	vertices[2].color = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
 
-		// Give the subresource structure a pointer to the vertex data.
-		vertexData.pSysMem = vertices;
-		vertexData.SysMemPitch = 0;
-		vertexData.SysMemSlicePitch = 0;
+	// Load the index array with data.
+	indices[0] = 0;  // Bottom left.
+	indices[1] = 1;  // Top middle.
+	indices[2] = 2;  // Bottom right.
 
-		// Now create the vertex buffer.
-		result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
-		if (FAILED(result))
-		{
-			return false;
-		}
+	// Set up the description of the static vertex buffer.
+	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexBufferDesc.ByteWidth = sizeof(VertexType) * m_vertexCount;
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.CPUAccessFlags = 0;
+	vertexBufferDesc.MiscFlags = 0;
+	vertexBufferDesc.StructureByteStride = 0;
 
-		// Release the arrays now that the vertex and index buffers have been created and loaded.
-		delete[] vertices;
-		vertices = 0;
-	}
-	
-	///////////////////////////////////////////////////////////////////////////////
-	// Index Buffer 생성
-	{
-		m_indexCount = 6;
+	// Give the subresource structure a pointer to the vertex data.
+	vertexData.pSysMem = vertices;
+	vertexData.SysMemPitch = 0;
+	vertexData.SysMemSlicePitch = 0;
 
-		// Create the index array.
-		indices = new unsigned long[m_indexCount];
-		if (!indices)
-		{
-			return false;
-		}
+	// Now create the vertex buffer.
+	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
+	if (FAILED(result)) return false;
 
-		// Load the index array with data.
-		indices[0] = 2;  // Bottom left.
-		indices[1] = 0;  // Top left.
-		indices[2] = 3;  // Bottom right.
+	// Set up the description of the static index buffer.
+	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.ByteWidth = sizeof(unsigned long) * m_indexCount;
+	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexBufferDesc.CPUAccessFlags = 0;
+	indexBufferDesc.MiscFlags = 0;
+	indexBufferDesc.StructureByteStride = 0;
 
-		indices[3] = 3;  // Bottom right.
-		indices[4] = 0;  // Top left.
-		indices[5] = 1;  // Top right.
+	// Give the subresource structure a pointer to the index data.
+	indexData.pSysMem = indices;
+	indexData.SysMemPitch = 0;
+	indexData.SysMemSlicePitch = 0;
 
-		// Set up the description of the static index buffer.
-		indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		indexBufferDesc.ByteWidth = sizeof(unsigned long) * m_indexCount;
-		indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-		indexBufferDesc.CPUAccessFlags = 0;
-		indexBufferDesc.MiscFlags = 0;
-		indexBufferDesc.StructureByteStride = 0;
+	// Create the index buffer.
+	result = device->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer);
+	if (FAILED(result)) return false;
 
-		// Give the subresource structure a pointer to the index data.
-		indexData.pSysMem = indices;
-		indexData.SysMemPitch = 0;
-		indexData.SysMemSlicePitch = 0;
+	// Release the arrays now that the vertex and index buffers have been created and loaded.
+	delete[] vertices;
+	vertices = 0;
 
-		// Create the index buffer.
-		result = device->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer);
-		if (FAILED(result))
-		{
-			return false;
-		}
-
-		delete[] indices;
-		indices = 0;
-	}
+	delete[] indices;
+	indices = 0;
 
 	return true;
 }
@@ -174,14 +128,14 @@ void ModelClass::ShutdownBuffers()
 	if (m_indexBuffer)
 	{
 		m_indexBuffer->Release();
-		m_indexBuffer = nullptr;
+		m_indexBuffer = 0;
 	}
 
 	// Release the vertex buffer.
 	if (m_vertexBuffer)
 	{
 		m_vertexBuffer->Release();
-		m_vertexBuffer = nullptr;
+		m_vertexBuffer = 0;
 	}
 
 	return;
@@ -205,35 +159,6 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 
 	// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	return;
-}
-
-bool ModelClass::LoadTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* filename)
-{
-	bool result;
-
-	// TextureClass개체를 생성하고 초기화 합니다.
-	m_Texture = new TextureClass;
-
-	result = m_Texture->Initialize(device, deviceContext, filename);
-	if (!result)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-void ModelClass::ReleaseTexture()
-{
-	// Release the texture object.
-	if (m_Texture)
-	{
-		m_Texture->Shutdown();
-		delete m_Texture;
-		m_Texture = nullptr;
-	}
 
 	return;
 }
